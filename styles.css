@@ -15,6 +15,7 @@ html {
     box-sizing: content-box;
     padding: 2px;
     border-radius: 4px;
+    position: relative;
 }
 
 .black_tile{
@@ -24,7 +25,12 @@ html {
     z-index: 1;
     margin: 2px;
     border-radius: 2px;
-    display: inline-block
+    display: inline-block;
+    position: absolute;
+    font-size: 48px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 75px; 
 }
 
 .white_tile{
@@ -34,9 +40,19 @@ html {
     z-index: 1;
     margin: 2px;
     border-radius: 2px;
-    display: inline-block
+    display: inline-block;
+    position: absolute;
+    font-size: 48px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 75px; 
+
 }
 
 .row{
-    display: inline-block
+    display: inline-block;
+}
+
+[data-selected = "true"]{
+    background-color: lightskyblue;
 }
