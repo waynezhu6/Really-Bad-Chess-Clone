@@ -26,9 +26,10 @@ class ChessGame{
     constructor(){
         this.current = "white";
         this.game_playing = false;
-        this.board = [];;
+        this.board = [];
         this.currentPlayer = "white";
         this.currentSelected = null;
+        this.currentMoves = [];
         
         for(var i = 0; i < 8; i++){
             var row = [];
@@ -85,28 +86,21 @@ class ChessGame{
                     default:
                         tile.innerHTML = "?";
                     }
-                }  
+                }
+                else{
+                    tile.innerHTML = "";
+                }
             }
         }
     }
     
     onClick(id){
         var piece = this.board[id[0]][id[1]];
+        var currentLocation = String(id[0]) + String(id[1]);
         
-        if(piece != null){
+        if(this.currentSelected == null){ //if no piece is selected right now
             
-            if(piece.selected){
-                for(var i = 0; i < 8; i++){
-                    for(var j = 0; j < 8; j++){
-                        var thisID = String(i) + String(j)
-                        var tile = document.getElementById(thisID);
-                        tile.setAttribute("data-selected", "false");
-                    }
-                }
-                piece.selected = false;
-                return
-            }
-            else{
+            if(piece != null){ //if this tile contains a game piece
                 var moves = this.getValidMoves(id);
                 
                 for(var i = 0; i < 8; i++){
@@ -124,47 +118,112 @@ class ChessGame{
                         }
                     }
                 }
-                piece.selected = true;
-                if(this.currentSelected != null){
-                    this.currentSelected.selected = false;
-                }
                 this.currentSelected = piece;
+                this.currentMoves = moves;
             }
             
         }
         else{
-            for(var i = 0; i < 8; i++){
-                for(var j = 0; j < 8; j++){
-                    var thisID = String(i) + String(j)
-                    var tile = document.getElementById(thisID);
-                    tile.setAttribute("data-selected", "false");
+            
+            if(piece == null){
+                if(this.currentMoves.includes(currentLocation)){
+                    this.move_piece(this.currentSelected, id[1], id[0]);
+                    this.deselectAll();
+                    this.draw();
+                }
+                else{
+                    this.deselectAll();   
                 }
             }
-            this.currentSelected.selected = false;
-            this.currentSelected = null;
+            else if(piece == this.currentSelected){ //deselect if selected again
+                this.deselectAll();
+            }
+            else if(piece.color == this.currentPlayer){ //if piece is an friendly piece, select that instead
+                this.deselectAll();
+                var moves = this.getValidMoves(id);
+                console.log(moves);
+                
+                for(var i = 0; i < 8; i++){
+
+                    for(var j = 0; j < 8; j++){
+
+                        var thisID = String(i) + String(j)
+                        var tile = document.getElementById(thisID);
+
+                        if(moves.includes(thisID)){
+                            tile.setAttribute("data-selected", "true");
+                        } 
+                        else{
+                            tile.setAttribute("data-selected", "false");
+                        }
+                    }
+                }
+                this.currentSelected = piece;
+                this.currentMoves = moves;                
+            }
+            else if(piece.color != this.currentPlayer){ //if we're trying to attack an enemy
+                //PERFORM ATTACKING ACTION HERE
+            }
+            
+            else{ //otherwise deselect all
+                this.deselectAll();
+            }
         }
+    }
+    
+    deselectAll(){ //remove all blue selection tiles
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                var thisID = String(i) + String(j)
+                var tile = document.getElementById(thisID);
+                tile.setAttribute("data-selected", "false");
+            }
+        }
+        this.currentSelected = null;
+        this.currentMoves = null;
     }
     
     getValidMoves(id){ //get all possible squares the piece at x, y can move to
         var y = id[0];
         var x = id[1];
         var piece = this.board[y][x];
-        console.log(piece);
         
+        var validMoves = [];
         if(piece != null && piece.color == this.currentPlayer){
-            return piece.getValidMoves();
+            var moves = piece.getValidMoves(this);
+            for(var i = 0; i < moves.length; i++){
+                var move = moves[i];
+                if(this.board[move[0]][move[1]] == null){
+                    validMoves.push(move);
+                }
+            }
+            return validMoves;
         }
         else{
             return [];
         }
     }
     
-    move_piece(){
+    move_piece(piece, newX, newY){
+        var oldY = piece.y;
+        var oldX = piece.x;
+        piece.y = parseInt(newY);
+        piece.x = parseInt(newX);
         
+        this.board[oldY][oldX] = null;
+        this.board[newY][newX] = piece;
     }
     
     checkForMate(){
         
+    }
+    
+    hasPiece(x, y){
+        return (this.board[y][x] != null);
+    }
+    
+    isEnemy(x, y){
+        return (this.board[y][x].color != this.currentPlayer);
     }
 
 }
@@ -175,15 +234,14 @@ class Piece{
         this.alive = true;
         this.x = x; 
         this.y = y;
-        this.selected = false;
     }
     
-    getAllMoves(){
+    getAllMoves(game){
         return;
     }
     
-    getValidMoves(){
-        var all_moves = this.getAllMoves();
+    getValidMoves(game){
+        var all_moves = this.getAllMoves(game);
         var validMoves = [];
         for(var i = 0; i < all_moves.length; i++){
             var move = all_moves[i];
@@ -204,21 +262,24 @@ class Pawn extends Piece{
         this.firstMove = true
     }
     
-    getAllMoves(){
+    getAllMoves(game){
         var all_moves = [];
         if(this.color == "white"){
             all_moves = [[this.y + 1, this.x]];
-            if(this.firstMove){
+            console.log(game.hasPiece(this.x, this.y + 2));
+            if(this.firstMove && !game.hasPiece(this.x, this.y + 1)){
                 all_moves.push([this.y + 2, this.x]);
             }
         }
         else{
             all_moves = [[this.y - 1, this.x]];
-            if(this.firstMove){
+            if(this.firstMove && !game.hasPiece(this.x, this.y - 1)){
                 all_moves.push([this.y - 2, this.x]);
             }
         }
         return all_moves;
+        
+        //IMPLEMENT PAWN ATTACKS
     }
 }
 
@@ -227,7 +288,7 @@ class Rook extends Piece{
         super(color, x, y);
     }
     
-    getAllMoves(){
+    getAllMoves(game){
         var all_moves = [];
         for(var x = 0; x < 8; x++){
             if(x != this.x){
