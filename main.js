@@ -28,67 +28,131 @@ class ChessGame{
         this.game_playing = false;
         this.board = [];;
         this.currentPlayer = "white";
+        this.currentSelected = null;
         
         for(var i = 0; i < 8; i++){
             var row = [];
             for(var j = 0; j < 8; j++){
-                row.push(new Rook("white", i, j));
+                row.push(null);
             }
             this.board.push(row);
         }
     }
     
-    createGame(){
+    generateGame(){
+        for(var i = 0; i < 8; i++){
+            this.board[1][i] = new Pawn("white", i, 1);
+            this.board[6][i] = new Pawn("black", i, 6);
+        }
+        this.board[0][0] = new Rook("white", 0, 0);
+        this.board[0][1] = new Knight("white", 1, 0);
+        this.board[0][2] = new Bishop("white", 2, 0);
+        this.board[0][3] = new King("white", 3, 0);
+        this.board[0][4] = new Queen("white", 4, 0);
+        this.board[0][5] = new Bishop("white", 5, 0);
+        this.board[0][6] = new Knight("white", 6, 0);
+        this.board[0][7] = new Rook("white", 7, 0);
         
     }
     
     draw(){
-        for(var i = 0; i < 7; i++){
-            for(var j = 0; j < 7; j++){
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
                 var tileID = String(i) + String(j);
                 var tile = document.getElementById(tileID);
                 var piece = this.board[i][j];
-                switch(piece){
-                    case piece instanceof Pawn:
-                        return tile.innerHTML = "&#9817;";
+                
+                if(piece != null){
+                    switch(piece.constructor){
+                    case Pawn:
+                        tile.innerHTML = "&#9817;";
                         break;
-                    case piece instanceof Rook:
-                        return tile.innerHTML = "&#9814;";
+                    case Rook:
+                        tile.innerHTML = "&#9814;";
+                        break;
+                    case Knight:
+                        tile.innerHTML = "&#9816;";
+                        break;
+                    case Bishop:
+                        tile.innerHTML = "&#9815;";
+                        break;
+                    case Queen:
+                        tile.innerHTML = "&#9813;";
+                        break;
+                    case King:
+                        tile.innerHTML = "&#9812;";
                         break;
                     default:
-                        tile.innerHTML = "&#9817;";
-                }
+                        tile.innerHTML = "?";
+                    }
+                }  
             }
         }
     }
     
     onClick(id){
-        var moves = this.getValidMoves(id);
+        var piece = this.board[id[0]][id[1]];
         
-        for(var i = 0; i < 8; i++){
+        if(piece != null){
             
-            for(var j = 0; j < 8; j++){
+            if(piece.selected){
+                for(var i = 0; i < 8; i++){
+                    for(var j = 0; j < 8; j++){
+                        var thisID = String(i) + String(j)
+                        var tile = document.getElementById(thisID);
+                        tile.setAttribute("data-selected", "false");
+                    }
+                }
+                piece.selected = false;
+                return
+            }
+            else{
+                var moves = this.getValidMoves(id);
                 
-                var thisID = String(i) + String(j)
-                var tile = document.getElementById(thisID);
-                
-                if(moves.includes(thisID)){
-                    tile.setAttribute("data-selected", "true");
-                } 
-                else{
+                for(var i = 0; i < 8; i++){
+
+                    for(var j = 0; j < 8; j++){
+
+                        var thisID = String(i) + String(j)
+                        var tile = document.getElementById(thisID);
+
+                        if(moves.includes(thisID)){
+                            tile.setAttribute("data-selected", "true");
+                        } 
+                        else{
+                            tile.setAttribute("data-selected", "false");
+                        }
+                    }
+                }
+                piece.selected = true;
+                if(this.currentSelected != null){
+                    this.currentSelected.selected = false;
+                }
+                this.currentSelected = piece;
+            }
+            
+        }
+        else{
+            for(var i = 0; i < 8; i++){
+                for(var j = 0; j < 8; j++){
+                    var thisID = String(i) + String(j)
+                    var tile = document.getElementById(thisID);
                     tile.setAttribute("data-selected", "false");
                 }
             }
+            this.currentSelected.selected = false;
+            this.currentSelected = null;
         }
     }
     
     getValidMoves(id){ //get all possible squares the piece at x, y can move to
-        var x = id[0];
-        var y = id[1];
+        var y = id[0];
+        var x = id[1];
         var piece = this.board[y][x];
+        console.log(piece);
         
         if(piece != null && piece.color == this.currentPlayer){
-            return piece.getMoves();
+            return piece.getValidMoves();
         }
         else{
             return [];
@@ -111,10 +175,26 @@ class Piece{
         this.alive = true;
         this.x = x; 
         this.y = y;
+        this.selected = false;
     }
     
-    getMoves(){
-        return
+    getAllMoves(){
+        return;
+    }
+    
+    getValidMoves(){
+        var all_moves = this.getAllMoves();
+        var validMoves = [];
+        for(var i = 0; i < all_moves.length; i++){
+            var move = all_moves[i];
+            var y = move[0];
+            var x = move[1];
+            if(within_range(x, y)){
+                var strMove = String(y) + String(x);
+                validMoves.push(strMove);
+            }
+        }
+        return validMoves;
     }
 }
 
@@ -124,7 +204,7 @@ class Pawn extends Piece{
         this.firstMove = true
     }
     
-    getMoves(){
+    getAllMoves(){
         var all_moves = [];
         if(this.color == "white"){
             all_moves = [[this.y + 1, this.x]];
@@ -138,18 +218,7 @@ class Pawn extends Piece{
                 all_moves.push([this.y - 2, this.x]);
             }
         }
-        
-        var possible_moves = [];
-        for(var i = 0; i < all_moves.length; i++){
-            var move = all_moves[i];
-            var y = move[0];
-            var x = move[1];
-            if(within_range(x, y)){
-                var strMove = String(y) + String(x);
-                possible_moves.push(strMove);
-            }
-        }
-        return possible_moves;
+        return all_moves;
     }
 }
 
@@ -158,7 +227,7 @@ class Rook extends Piece{
         super(color, x, y);
     }
     
-    getMoves(){
+    getAllMoves(){
         var all_moves = [];
         for(var x = 0; x < 8; x++){
             if(x != this.x){
@@ -170,18 +239,7 @@ class Rook extends Piece{
                 all_moves.push([y, this.x]);
             }
         }
-        
-        var possible_moves = [];
-        for(var i = 0; i < all_moves.length; i++){
-            var move = all_moves[i];
-            var y = move[0];
-            var x = move[1];
-            if(within_range(x, y)){
-                var strMove = String(y) + String(x);
-                possible_moves.push(strMove);
-            }
-        }
-        return possible_moves;
+        return all_moves;
     }
 }
 
@@ -190,30 +248,9 @@ class Knight extends Piece{
         super(color, x, y);
     }
     
-    getMoves(){
-        var all_moves = [];
-        for(var x = 0; x < 8; x++){
-            if(x != this.x){
-                all_moves.push([this.y, x]);
-            }
-        }
-        for(var y = 0; y < 8; y++){
-            if(y != this.y){
-                all_moves.push([y, this.x]);
-            }
-        }
-        
-        var possible_moves = [];
-        for(var i = 0; i < all_moves.length; i++){
-            var move = all_moves[i];
-            var y = move[0];
-            var x = move[1];
-            if(within_range(x, y)){
-                var strMove = String(y) + String(x);
-                possible_moves.push(strMove);
-            }
-        }
-        return possible_moves;
+    getAllMoves(){
+        var all_moves = [[this.y - 2, this.x + 1], [this.y - 1, this.x + 2], [this.y + 1, this.x + 2], [this.y + 2, this.x + 1], [this.y + 2, this.x - 1], [this.y + 1, this.x - 2], [this.y - 1, this.x - 2], [this.y - 2, this.x - 1]];
+        return all_moves;
     }
 }
 
@@ -222,30 +259,15 @@ class Bishop extends Piece{
         super(color, x, y);
     }
     
-    getMoves(){
+    getAllMoves(){
         var all_moves = [];
-        for(var x = 0; x < 8; x++){
-            if(x != this.x){
-                all_moves.push([this.y, x]);
+        for(var z = -8; z < 8; z++){
+            if(z != 0){
+                all_moves.push([this.y + z, this.x - z]);
+                all_moves.push([this.y - z, this.x - z]);
             }
         }
-        for(var y = 0; y < 8; y++){
-            if(y != this.y){
-                all_moves.push([y, this.x]);
-            }
-        }
-        
-        var possible_moves = [];
-        for(var i = 0; i < all_moves.length; i++){
-            var move = all_moves[i];
-            var y = move[0];
-            var x = move[1];
-            if(within_range(x, y)){
-                var strMove = String(y) + String(x);
-                possible_moves.push(strMove);
-            }
-        }
-        return possible_moves;
+        return all_moves;
     }
 }
 
@@ -254,8 +276,16 @@ class Queen extends Piece{
         super(color, x, y);
     }
     
-    getMoves(){
+    getAllMoves(){
         var all_moves = [];
+        
+        for(var z = -8; z < 8; z++){
+            if(z != 0){
+                all_moves.push([this.y + z, this.x - z]);
+                all_moves.push([this.y - z, this.x - z]);
+            }
+        }
+        
         for(var x = 0; x < 8; x++){
             if(x != this.x){
                 all_moves.push([this.y, x]);
@@ -266,18 +296,7 @@ class Queen extends Piece{
                 all_moves.push([y, this.x]);
             }
         }
-        
-        var possible_moves = [];
-        for(var i = 0; i < all_moves.length; i++){
-            var move = all_moves[i];
-            var y = move[0];
-            var x = move[1];
-            if(within_range(x, y)){
-                var strMove = String(y) + String(x);
-                possible_moves.push(strMove);
-            }
-        }
-        return possible_moves;
+        return all_moves;
     }
 }
 
@@ -286,30 +305,9 @@ class King extends Piece{
         super(color, x, y);
     }
     
-    getMoves(){
-        var all_moves = [];
-        for(var x = 0; x < 8; x++){
-            if(x != this.x){
-                all_moves.push([this.y, x]);
-            }
-        }
-        for(var y = 0; y < 8; y++){
-            if(y != this.y){
-                all_moves.push([y, this.x]);
-            }
-        }
-        
-        var possible_moves = [];
-        for(var i = 0; i < all_moves.length; i++){
-            var move = all_moves[i];
-            var y = move[0];
-            var x = move[1];
-            if(within_range(x, y)){
-                var strMove = String(y) + String(x);
-                possible_moves.push(strMove);
-            }
-        }
-        return possible_moves;
+    getAllMoves(){
+        var all_moves = [[this.y + 1, this.x], [this.y - 1, this.x], [this.y, this.x - 1], [this.y, this.x + 1]];
+        return all_moves;
     }
 }
                
