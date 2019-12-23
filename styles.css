@@ -1,0 +1,42 @@
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+.chessboard{
+    width: 600px;
+    height: 600px;
+    background-color: darkslategrey;
+    z-index: 0;
+    display: inline-block;
+    box-sizing: content-box;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.black_tile{
+    width: 71px;
+    height: 71px;
+    background-color: darkgrey;
+    z-index: 1;
+    margin: 2px;
+    border-radius: 2px;
+    display: inline-block
+}
+
+.white_tile{
+    width: 71px;
+    height: 71px;
+    background-color: white;
+    z-index: 1;
+    margin: 2px;
+    border-radius: 2px;
+    display: inline-block
+}
+
+.row{
+    display: inline-block
+}
