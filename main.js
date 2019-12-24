@@ -28,7 +28,8 @@ class ChessGame{
         this.board = []; //current state of the 8x8 board
         this.currentPlayer = "white"; //the current player white or black
         this.currentSelected = null; //the currently selected piece
-        this.currentMoves = []; //list of all possible moves in format "[[i, j], [i, j]]
+        this.whiteMoves = []; //list of all possible moves in format "[[i, j], [i, j]] for white
+        this.blackMoves = [];
         
         for(var i = 0; i < 8; i++){
             var row = [];
@@ -70,6 +71,7 @@ class ChessGame{
         this.board[7][6] = new Knight("black", 7, 6);
         this.board[7][7] = new Rook("black", 7, 7);
         
+        this.getValidMoves();      
     }
     
     draw(){
@@ -164,6 +166,7 @@ class ChessGame{
                 this.currentSelected.deselect();
                 this.currentSelected = null;
                 //GOOD PLACE TO IMPLEMENT UNDO
+                this.nextTurn();
             }
         }
     }
@@ -182,12 +185,31 @@ class ChessGame{
         
     }
     
-    setValidMoves(){
-        
-    }
-    
     getValidMoves(){
+        var whiteMoves = [];
+        var blackMoves = [];
         
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                var piece = this.board[i][j];
+                if(piece != null){
+                    var moves = piece.getValidMoves();
+                    var from = [i, j];
+                    
+                    for(var x = 0; x < moves.length; x++){
+                        var to = moves[x];
+                        if(piece.color == "white"){
+                            whiteMoves.push([from], [to]);
+                        }
+                        else{
+                            blackMoves.push([from], [to]);
+                        }
+                    }
+                }
+            }
+        }
+        this.whiteMoves = whiteMoves;
+        this.blakMoves = blackMoves;
     }
     
     hasPiece(i, j){
