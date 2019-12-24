@@ -40,19 +40,19 @@ class ChessGame{
         }
     }
     
-    generateGame(){
-        for(var i = 0; i < 8; i++){
-            this.board[1][i] = new Pawn("white", i, 1);
-            this.board[6][i] = new Pawn("black", i, 6);
+    generateGame(){ //places all game pieces onto the board
+        for(var j = 0; j < 8; j++){
+            this.board[1][j] = new Pawn("white", 1, j);
+            this.board[6][j] = new Pawn("black", 6, j);
         }
         this.board[0][0] = new Rook("white", 0, 0);
-        this.board[0][1] = new Knight("white", 1, 0);
-        this.board[0][2] = new Bishop("white", 2, 0);
-        this.board[0][3] = new King("white", 3, 0);
-        this.board[0][4] = new Queen("white", 4, 0);
-        this.board[0][5] = new Bishop("white", 5, 0);
-        this.board[0][6] = new Knight("white", 6, 0);
-        this.board[0][7] = new Rook("white", 7, 0);
+        this.board[0][1] = new Knight("white", 0, 1);
+        this.board[0][2] = new Bishop("white", 0, 2);
+        this.board[0][3] = new King("white", 0, 3);
+        this.board[0][4] = new Queen("white", 0, 4);
+        this.board[0][5] = new Bishop("white", 0, 5);
+        this.board[0][6] = new Knight("white", 0, 6);
+        this.board[0][7] = new Rook("white", 0, 7);
         
     }
     
@@ -121,13 +121,12 @@ class ChessGame{
                 this.currentSelected = piece;
                 this.currentMoves = moves;
             }
-            
         }
         else{
             
             if(piece == null){
                 if(this.currentMoves.includes(currentLocation)){
-                    this.move_piece(this.currentSelected, id[1], id[0]);
+                    this.move_piece(this.currentSelected, id[0], id[1]);
                     this.deselectAll();
                     this.draw();
                 }
@@ -141,7 +140,6 @@ class ChessGame{
             else if(piece.color == this.currentPlayer){ //if piece is an friendly piece, select that instead
                 this.deselectAll();
                 var moves = this.getValidMoves(id);
-                console.log(moves);
                 
                 for(var i = 0; i < 8; i++){
 
@@ -183,17 +181,21 @@ class ChessGame{
         this.currentMoves = null;
     }
     
-    getValidMoves(id){ //get all possible squares the piece at x, y can move to
-        var y = id[0];
-        var x = id[1];
-        var piece = this.board[y][x];
+    getValidMoves(id){ //get all possible squares the piece at i, j can move to
+        var i = id[0];
+        var j = id[1];
+        var piece = this.board[i][j];
         
         var validMoves = [];
         if(piece != null && piece.color == this.currentPlayer){
             var moves = piece.getValidMoves(this);
             for(var i = 0; i < moves.length; i++){
                 var move = moves[i];
-                if(this.board[move[0]][move[1]] == null){
+                var curr = this.board[move[0]][move[1]];
+                if(curr == null){
+                    validMoves.push(move);
+                }
+                else if(curr.color != this.currentPlayer){
                     validMoves.push(move);
                 }
             }
@@ -204,36 +206,41 @@ class ChessGame{
         }
     }
     
-    move_piece(piece, newX, newY){
-        var oldY = piece.y;
-        var oldX = piece.x;
-        piece.y = parseInt(newY);
-        piece.x = parseInt(newX);
+    move_piece(piece, newI, newJ){
+        var oldI = piece.i;
+        var oldJ = piece.j;
+        piece.i = parseInt(newI);
+        piece.j = parseInt(newJ);
         
-        this.board[oldY][oldX] = null;
-        this.board[newY][newX] = piece;
+        this.board[oldI][oldJ] = null;
+        this.board[newI][newJ] = piece;
     }
     
     checkForMate(){
         
     }
     
-    hasPiece(x, y){
-        return (this.board[y][x] != null);
+    hasPiece(i, j){
+        return (this.board[i][j] != null);
     }
     
-    isEnemy(x, y){
-        return (this.board[y][x].color != this.currentPlayer);
+    isEnemy(i, j){
+        if(this.board[i][j] == null){
+            return false;
+        }
+        return (this.board[i][j].color != this.currentPlayer);
     }
 
 }
 
 class Piece{
-    constructor(color, x, y){
+    constructor(color, i, j){
         this.color = color;
         this.alive = true;
-        this.x = x; 
-        this.y = y;
+        this.i = i; 
+        this.j = j;
+        this.firstMove = true;
+        this.validMoves = [];
     }
     
     getAllMoves(game){
@@ -243,12 +250,12 @@ class Piece{
     getValidMoves(game){
         var all_moves = this.getAllMoves(game);
         var validMoves = [];
-        for(var i = 0; i < all_moves.length; i++){
-            var move = all_moves[i];
-            var y = move[0];
-            var x = move[1];
-            if(within_range(x, y)){
-                var strMove = String(y) + String(x);
+        for(var x = 0; x < all_moves.length; x++){
+            var move = all_moves[x];
+            var i = move[0];
+            var j = move[1];
+            if(within_range(i, j)){
+                var strMove = String(i) + String(j);
                 validMoves.push(strMove);
             }
         }
@@ -257,24 +264,35 @@ class Piece{
 }
 
 class Pawn extends Piece{
-    constructor(color, x, y){
-        super(color, x, y);
-        this.firstMove = true
+    constructor(color, i, j){
+        super(color, i, j);
+        this.firstMove = true;
     }
     
     getAllMoves(game){
         var all_moves = [];
         if(this.color == "white"){
-            all_moves = [[this.y + 1, this.x]];
-            console.log(game.hasPiece(this.x, this.y + 2));
-            if(this.firstMove && !game.hasPiece(this.x, this.y + 1)){
-                all_moves.push([this.y + 2, this.x]);
+            all_moves = [[this.i + 1, this.j]];
+            if(this.firstMove && !game.hasPiece(this.i + 1, this.j)){
+                all_moves.push([this.i + 2, this.j]);
+            }
+            if(game.isEnemy(this.i + 1, this.j - 1)){
+                all_moves.push([this.i + 1, this.j - 1]);
+            }
+            if(game.isEnemy(this.i + 1, this.j + 1)){
+                all_moves.push([this.i + 1, this.j + 1]);
             }
         }
         else{
-            all_moves = [[this.y - 1, this.x]];
-            if(this.firstMove && !game.hasPiece(this.x, this.y - 1)){
-                all_moves.push([this.y - 2, this.x]);
+            all_moves = [[this.i - 1, this.j]];
+            if(this.firstMove && !game.hasPiece(this.i - 1, this.j)){
+                all_moves.push([this.i - 2, this.j]);
+            }
+            if(game.isEnemy(this.i - 1, this.j - 1)){
+                all_moves.push([this.i - 1, this.j - 1]);
+            }
+            if(game.isEnemy(this.i - 1, this.j + 1)){
+                all_moves.push([this.i - 1, this.j + 1]);
             }
         }
         return all_moves;
@@ -284,94 +302,187 @@ class Pawn extends Piece{
 }
 
 class Rook extends Piece{
-    constructor(color, x, y){
-        super(color, x, y);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(game){
         var all_moves = [];
-        for(var x = 0; x < 8; x++){
-            if(x != this.x){
-                all_moves.push([this.y, x]);
+        for(var j = this.j - 1; j >= 0; j -= 1){
+            if(game.hasPiece(this.i, j)){
+                break;
             }
+            all_moves.push([this.i, j]);
         }
-        for(var y = 0; y < 8; y++){
-            if(y != this.y){
-                all_moves.push([y, this.x]);
+        for(var j = this.j + 1; j < 8; j++){
+            if(game.hasPiece(this.i, j)){
+                break;
             }
+            all_moves.push([this.i, j]);
+        }
+        
+        for(var i = this.i - 1; i >= 0; i -= 1){
+            if(game.hasPiece(i, this.j)){
+                break;
+            }
+            all_moves.push([i, this.j]);
+        }
+        for(var i = this.i + 1; i < 8; i++){
+            if(game.hasPiece(i, this.j)){
+                break;
+            }            
+            all_moves.push([i, this.j]);
         }
         return all_moves;
     }
 }
 
 class Knight extends Piece{
-    constructor(color, x, y){
-        super(color, x, y);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(){
-        var all_moves = [[this.y - 2, this.x + 1], [this.y - 1, this.x + 2], [this.y + 1, this.x + 2], [this.y + 2, this.x + 1], [this.y + 2, this.x - 1], [this.y + 1, this.x - 2], [this.y - 1, this.x - 2], [this.y - 2, this.x - 1]];
+        var all_moves = [[this.i - 2, this.j + 1], [this.i - 1, this.j + 2], [this.i + 1, this.j + 2], [this.i + 2, this.j + 1], [this.i + 2, this.j - 1], [this.i + 1, this.j - 2], [this.i - 1, this.j - 2], [this.i - 2, this.j - 1]];
         return all_moves;
     }
 }
 
 class Bishop extends Piece{
-    constructor(color, x, y){
-        super(color, x, y);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
-    getAllMoves(){
+    getAllMoves(game){
         var all_moves = [];
-        for(var z = -8; z < 8; z++){
-            if(z != 0){
-                all_moves.push([this.y + z, this.x - z]);
-                all_moves.push([this.y - z, this.x - z]);
+        
+        for(var z = 1; z < 8; z++){ //down and right
+            if(!within_range(this.i + z, this.j + z)){
+                break;
             }
+            else if(game.hasPiece(this.i + z, this.j + z)){
+                break;
+            }
+            all_moves.push([this.i + z, this.j + z]);
         }
+        for(var z = 1; z < 8; z++){
+            if(!within_range(this.i - z, this.j + z)){
+                break;
+            }
+            else if(game.hasPiece(this.i - z, this.j + z)){
+                break;
+            }
+            all_moves.push([this.i - z, this.j + z]);
+        }
+        for(var z = 1; z < 8; z++){
+            if(!within_range(this.i + z, this.j - z)){
+                break;
+            }
+            else if(game.hasPiece(this.i + z, this.j - z)){
+                break;
+            }
+            all_moves.push([this.i + z, this.j - z]);
+        }
+        for(var z = 1; z < 8; z++){
+            if(!within_range(this.i - z, this.j - z)){
+                break;
+            }
+            else if(game.hasPiece(this.i - z, this.j - z)){
+                break;
+            }
+            all_moves.push([this.i - z, this.j - z]);
+        }
+        console.log(all_moves);
         return all_moves;
     }
 }
 
 class Queen extends Piece{
-    constructor(color, x, y){
-        super(color, x, y);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
-    getAllMoves(){
+    getAllMoves(game){
         var all_moves = [];
         
-        for(var z = -8; z < 8; z++){
-            if(z != 0){
-                all_moves.push([this.y + z, this.x - z]);
-                all_moves.push([this.y - z, this.x - z]);
+        for(var j = this.j - 1; j >= 0; j -= 1){
+            if(game.hasPiece(this.i, j)){
+                break;
             }
+            all_moves.push([this.i, j]);
+        }
+        for(var j = this.j + 1; j < 8; j++){
+            if(game.hasPiece(this.i, j)){
+                break;
+            }
+            all_moves.push([this.i, j]);
         }
         
-        for(var x = 0; x < 8; x++){
-            if(x != this.x){
-                all_moves.push([this.y, x]);
+        for(var i = this.i - 1; i >= 0; i -= 1){
+            if(game.hasPiece(i, this.j)){
+                break;
             }
+            all_moves.push([i, this.j]);
         }
-        for(var y = 0; y < 8; y++){
-            if(y != this.y){
-                all_moves.push([y, this.x]);
+        for(var i = this.i + 1; i < 8; i++){
+            if(game.hasPiece(i, this.j)){
+                break;
+            }            
+            all_moves.push([i, this.j]);
+        }
+        
+        for(var z = 1; z < 8; z++){ //down and right
+            if(!within_range(this.i + z, this.j + z)){
+                break;
             }
+            else if(game.hasPiece(this.i + z, this.j + z)){
+                break;
+            }
+            all_moves.push([this.i + z, this.j + z]);
         }
+        for(var z = 1; z < 8; z++){
+            if(!within_range(this.i - z, this.j + z)){
+                break;
+            }
+            else if(game.hasPiece(this.i - z, this.j + z)){
+                break;
+            }
+            all_moves.push([this.i - z, this.j + z]);
+        }
+        for(var z = 1; z < 8; z++){
+            if(!within_range(this.i + z, this.j - z)){
+                break;
+            }
+            else if(game.hasPiece(this.i + z, this.j - z)){
+                break;
+            }
+            all_moves.push([this.i + z, this.j - z]);
+        }
+        for(var z = 1; z < 8; z++){
+            if(!within_range(this.i - z, this.j - z)){
+                break;
+            }
+            else if(game.hasPiece(this.i - z, this.j - z)){
+                break;
+            }
+            all_moves.push([this.i - z, this.j - z]);
+        }
+        
         return all_moves;
     }
 }
 
 class King extends Piece{
-    constructor(color, x, y){
-        super(color, x, y);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
-    getAllMoves(){
-        var all_moves = [[this.y + 1, this.x], [this.y - 1, this.x], [this.y, this.x - 1], [this.y, this.x + 1]];
+    getAllMoves(game){
+        var all_moves = [[this.i + 1, this.j], [this.i - 1, this.j], [this.i, this.j - 1], [this.i, this.j + 1]];
         return all_moves;
     }
 }
                
-function within_range(x, y){
-    return (0 <= x && x <= 7 && 0 <= y && y <= 7);
+function within_range(i, j){
+    return (0 <= i && i <= 7 && 0 <= j && j <= 7);
 }
