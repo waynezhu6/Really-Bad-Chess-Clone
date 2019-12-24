@@ -181,7 +181,35 @@ class ChessGame{
         this.draw(); //redraw the gameboard
     }
     
-    checkForMate(){
+    getKing(player){ //return the [i, j] location of player's king
+        var king = null;
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                var piece = this.board[i][j];
+                if(piece instanceof King){
+                    king = piece;
+                    break;
+                }
+            }
+        }
+        
+        return [king.i, king.j];
+    }
+    
+    isChecked(player){ //returns whether or not player has been checked
+        var kingLocation = this.getKing(player);
+        var opponentMoves = [];
+        player == "white" ? opponentMoves = this.blackMoves : opponentMoves = this.whiteMoves;
+        
+        for(var i = 0; i < opponentMoves.length; i++){
+            if(opponentMoves[i][1] == kingLocation){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    checkForMate(player){
         
     }
     
