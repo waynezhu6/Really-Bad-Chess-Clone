@@ -42,17 +42,25 @@ class ChessGame{
     
     generateGame(){ //places all game pieces onto the board
         for(var j = 0; j < 8; j++){
-            this.board[1][j] = new Pawn("white", 1, j);
-            this.board[6][j] = new Pawn("black", 6, j);
+            this.board[1][j] = new Pawn(this, "white", 1, j);
+            this.board[6][j] = new Pawn(this, "black", 6, j);
         }
-        this.board[0][0] = new Rook("white", 0, 0);
-        this.board[0][1] = new Knight("white", 0, 1);
-        this.board[0][2] = new Bishop("white", 0, 2);
-        this.board[0][3] = new King("white", 0, 3);
-        this.board[0][4] = new Queen("white", 0, 4);
-        this.board[0][5] = new Bishop("white", 0, 5);
-        this.board[0][6] = new Knight("white", 0, 6);
-        this.board[0][7] = new Rook("white", 0, 7);
+        this.board[0][0] = new Rook(this, "white", 0, 0);
+        this.board[0][1] = new Knight(this, "white", 0, 1);
+        this.board[0][2] = new Bishop(this, "white", 0, 2);
+        this.board[0][3] = new King(this, "white", 0, 3);
+        this.board[0][4] = new Queen(this, "white", 0, 4);
+        this.board[0][5] = new Bishop(this, "white", 0, 5);
+        this.board[0][6] = new Knight(this, "white", 0, 6);
+        this.board[0][7] = new Rook(this, "white", 0, 7);
+        
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                if(this.board[i][j] != null){
+                    this.board[i][j].getValidMoves(this);
+                }
+            }
+        }
         
     }
     
@@ -234,13 +242,14 @@ class ChessGame{
 }
 
 class Piece{
-    constructor(color, i, j){
+    constructor(game, color, i, j){
+        this.game = game;
         this.color = color;
         this.alive = true;
         this.i = i; 
         this.j = j;
         this.firstMove = true;
-        this.validMoves = [];
+        this.validMoves = []; //gets all valid moves on this term in "ij" format
     }
     
     getAllMoves(game){
@@ -264,12 +273,12 @@ class Piece{
 }
 
 class Pawn extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+    constructor(game, color, i, j){
+        super(game, color, i, j);
         this.firstMove = true;
     }
     
-    getAllMoves(game){
+    getValidMoves(game){
         var all_moves = [];
         if(this.color == "white"){
             all_moves = [[this.i + 1, this.j]];
@@ -302,11 +311,12 @@ class Pawn extends Piece{
 }
 
 class Rook extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+    constructor(game, color, i, j){
+        super(game, color, i, j);
+        this.validMoves = [];
     }
     
-    getAllMoves(game){
+    getValidMoves(game){
         var all_moves = [];
         for(var j = this.j - 1; j >= 0; j -= 1){
             if(game.hasPiece(this.i, j)){
@@ -318,6 +328,8 @@ class Rook extends Piece{
             if(game.hasPiece(this.i, j)){
                 break;
             }
+            console.log(this.i, j)
+            console.log(game.hasPiece(this.i, j))
             all_moves.push([this.i, j]);
         }
         
@@ -333,6 +345,7 @@ class Rook extends Piece{
             }            
             all_moves.push([i, this.j]);
         }
+        console.log(all_moves);
         return all_moves;
     }
 }
