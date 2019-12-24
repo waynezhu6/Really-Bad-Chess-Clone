@@ -22,7 +22,7 @@ html {
 .black_tile{
     width: 71px;
     height: 71px;
-    background-color: darkgrey;
+    background-color: darkseagreen;
     z-index: 1;
     margin: 2px;
     border-radius: 2px;

@@ -54,6 +54,15 @@ class ChessGame{
         this.board[0][6] = new Knight("white", 0, 6);
         this.board[0][7] = new Rook("white", 0, 7);
         
+        this.board[7][0] = new Rook("black", 7, 0);
+        this.board[7][1] = new Knight("black", 7, 1);
+        this.board[7][2] = new Bishop("black", 7, 2);
+        this.board[7][3] = new King("black", 7, 3);
+        this.board[7][4] = new Queen("black", 7, 4);
+        this.board[7][5] = new Bishop("black", 7, 5);
+        this.board[7][6] = new Knight("black", 7, 6);
+        this.board[7][7] = new Rook("black", 7, 7);
+        
     }
     
     draw(){
@@ -64,28 +73,55 @@ class ChessGame{
                 var piece = this.board[i][j];
                 
                 if(piece != null){
-                    switch(piece.constructor){
-                    case Pawn:
-                        tile.innerHTML = "&#9817;";
-                        break;
-                    case Rook:
-                        tile.innerHTML = "&#9814;";
-                        break;
-                    case Knight:
-                        tile.innerHTML = "&#9816;";
-                        break;
-                    case Bishop:
-                        tile.innerHTML = "&#9815;";
-                        break;
-                    case Queen:
-                        tile.innerHTML = "&#9813;";
-                        break;
-                    case King:
-                        tile.innerHTML = "&#9812;";
-                        break;
-                    default:
-                        tile.innerHTML = "?";
+                    if(piece.color == "white"){
+                        switch(piece.constructor){
+                            case Pawn:
+                                tile.innerHTML = "&#9817;";
+                                break;
+                            case Rook:
+                                tile.innerHTML = "&#9814;";
+                                break;
+                            case Knight:
+                                tile.innerHTML = "&#9816;";
+                                break;
+                            case Bishop:
+                                tile.innerHTML = "&#9815;";
+                                break;
+                            case Queen:
+                                tile.innerHTML = "&#9813;";
+                                break;
+                            case King:
+                                tile.innerHTML = "&#9812;";
+                                break;
+                            default:
+                                tile.innerHTML = "?";
+                        }
                     }
+                    else{
+                        switch(piece.constructor){
+                            case Pawn:
+                                tile.innerHTML = "&#9823;";
+                                break;
+                            case Rook:
+                                tile.innerHTML = "&#9820;";
+                                break;
+                            case Knight:
+                                tile.innerHTML = "&#9822;";
+                                break;
+                            case Bishop:
+                                tile.innerHTML = "&#9821;";
+                                break;
+                            case Queen:
+                                tile.innerHTML = "&#9819;";
+                                break;
+                            case King:
+                                tile.innerHTML = "&#9818;";
+                                break;
+                            default:
+                                tile.innerHTML = "?";
+                        }
+                    }
+                    
                 }
                 else{
                     tile.innerHTML = "";
@@ -126,8 +162,9 @@ class ChessGame{
             
             if(piece == null){
                 if(this.currentMoves.includes(currentLocation)){
-                    this.move_piece(this.currentSelected, id[0], id[1]);
+                    this.movePiece(this.currentSelected, id[0], id[1]);
                     this.deselectAll();
+                    this.nextTurn();
                     this.draw();
                 }
                 else{
@@ -160,7 +197,12 @@ class ChessGame{
                 this.currentMoves = moves;                
             }
             else if(piece.color != this.currentPlayer){ //if we're trying to attack an enemy
-                //PERFORM ATTACKING ACTION HERE
+                piece.alive = false;
+                this.board[id[0]][id[1]] = null;
+                this.movePiece(this.currentSelected, id[0], id[1]);
+                this.deselectAll();
+                this.nextTurn();
+                this.draw();
             }
             
             else{ //otherwise deselect all
@@ -206,11 +248,12 @@ class ChessGame{
         }
     }
     
-    move_piece(piece, newI, newJ){
+    movePiece(piece, newI, newJ){
         var oldI = piece.i;
         var oldJ = piece.j;
         piece.i = parseInt(newI);
         piece.j = parseInt(newJ);
+        piece.firstMove = false;
         
         this.board[oldI][oldJ] = null;
         this.board[newI][newJ] = piece;
@@ -229,6 +272,17 @@ class ChessGame{
             return false;
         }
         return (this.board[i][j].color != this.currentPlayer);
+    }
+    
+    nextTurn(){
+        console.log(this.currentPlayer);
+        if(this.currentPlayer == "white"){
+            this.currentPlayer = "black";
+        }
+        else{
+            this.currentPlayer = "white";
+        }
+        console.log(this.currentPlayer);
     }
 
 }
@@ -272,8 +326,10 @@ class Pawn extends Piece{
     getAllMoves(game){
         var all_moves = [];
         if(this.color == "white"){
-            all_moves = [[this.i + 1, this.j]];
-            if(this.firstMove && !game.hasPiece(this.i + 1, this.j)){
+            if(!game.hasPiece(this.i + 1, this.j)){
+                all_moves = [[this.i + 1, this.j]];
+            }
+            if(this.firstMove && !game.hasPiece(this.i + 1, this.j) && !game.hasPiece(this.i + 2, this.j)){
                 all_moves.push([this.i + 2, this.j]);
             }
             if(game.isEnemy(this.i + 1, this.j - 1)){
@@ -284,8 +340,10 @@ class Pawn extends Piece{
             }
         }
         else{
-            all_moves = [[this.i - 1, this.j]];
-            if(this.firstMove && !game.hasPiece(this.i - 1, this.j)){
+            if(!game.hasPiece(this.i - 1, this.j)){
+                all_moves = [[this.i - 1, this.j]];
+            }
+            if(this.firstMove && !game.hasPiece(this.i - 1, this.j) && !game.hasPiece(this.i - 2, this.j)){
                 all_moves.push([this.i - 2, this.j]);
             }
             if(game.isEnemy(this.i - 1, this.j - 1)){
@@ -297,7 +355,6 @@ class Pawn extends Piece{
         }
         return all_moves;
         
-        //IMPLEMENT PAWN ATTACKS
     }
 }
 
@@ -310,12 +367,18 @@ class Rook extends Piece{
         var all_moves = [];
         for(var j = this.j - 1; j >= 0; j -= 1){
             if(game.hasPiece(this.i, j)){
+                if(game.isEnemy(this.i, j)){
+                    all_moves.push([this.i, j]);
+                }
                 break;
             }
             all_moves.push([this.i, j]);
         }
         for(var j = this.j + 1; j < 8; j++){
             if(game.hasPiece(this.i, j)){
+                if(game.isEnemy(this.i, j)){
+                    all_moves.push([this.i, j]);
+                }
                 break;
             }
             all_moves.push([this.i, j]);
@@ -323,12 +386,18 @@ class Rook extends Piece{
         
         for(var i = this.i - 1; i >= 0; i -= 1){
             if(game.hasPiece(i, this.j)){
+                if(game.isEnemy(i, this.j)){
+                    all_moves.push([i, this.j]);
+                }
                 break;
             }
             all_moves.push([i, this.j]);
         }
         for(var i = this.i + 1; i < 8; i++){
             if(game.hasPiece(i, this.j)){
+                if(game.isEnemy(i, this.j)){
+                    all_moves.push([i, this.j]);
+                }
                 break;
             }            
             all_moves.push([i, this.j]);
@@ -342,7 +411,7 @@ class Knight extends Piece{
         super(color, i, j);
     }
     
-    getAllMoves(){
+    getAllMoves(game){
         var all_moves = [[this.i - 2, this.j + 1], [this.i - 1, this.j + 2], [this.i + 1, this.j + 2], [this.i + 2, this.j + 1], [this.i + 2, this.j - 1], [this.i + 1, this.j - 2], [this.i - 1, this.j - 2], [this.i - 2, this.j - 1]];
         return all_moves;
     }
@@ -361,6 +430,9 @@ class Bishop extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i + z, this.j + z)){
+                if(game.isEnemy(this.i + z, this.j + z)){
+                    all_moves.push([this.i + z, this.j + z]);
+                }
                 break;
             }
             all_moves.push([this.i + z, this.j + z]);
@@ -370,6 +442,9 @@ class Bishop extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i - z, this.j + z)){
+                if(game.isEnemy(this.i - z, this.j + z)){
+                    all_moves.push([this.i - z, this.j + z]);
+                }
                 break;
             }
             all_moves.push([this.i - z, this.j + z]);
@@ -379,6 +454,9 @@ class Bishop extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i + z, this.j - z)){
+                if(game.isEnemy(this.i + z, this.j - z)){
+                    all_moves.push([this.i + z, this.j - z]);
+                }
                 break;
             }
             all_moves.push([this.i + z, this.j - z]);
@@ -388,11 +466,13 @@ class Bishop extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i - z, this.j - z)){
+                if(game.isEnemy(this.i - z, this.j - z)){
+                    all_moves.push([this.i - z, this.j - z]);
+                }
                 break;
             }
             all_moves.push([this.i - z, this.j - z]);
         }
-        console.log(all_moves);
         return all_moves;
     }
 }
@@ -407,12 +487,18 @@ class Queen extends Piece{
         
         for(var j = this.j - 1; j >= 0; j -= 1){
             if(game.hasPiece(this.i, j)){
+                if(game.isEnemy(this.i, j)){
+                    all_moves.push([this.i, j]);
+                }
                 break;
             }
             all_moves.push([this.i, j]);
         }
         for(var j = this.j + 1; j < 8; j++){
             if(game.hasPiece(this.i, j)){
+                if(game.isEnemy(this.i, j)){
+                    all_moves.push([this.i, j]);
+                }
                 break;
             }
             all_moves.push([this.i, j]);
@@ -420,12 +506,18 @@ class Queen extends Piece{
         
         for(var i = this.i - 1; i >= 0; i -= 1){
             if(game.hasPiece(i, this.j)){
+                if(game.isEnemy(i, this.j)){
+                    all_moves.push([i, this.j]);
+                }
                 break;
             }
             all_moves.push([i, this.j]);
         }
         for(var i = this.i + 1; i < 8; i++){
             if(game.hasPiece(i, this.j)){
+                if(game.isEnemy(i, this.j)){
+                    all_moves.push([i, this.j]);
+                }
                 break;
             }            
             all_moves.push([i, this.j]);
@@ -436,6 +528,9 @@ class Queen extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i + z, this.j + z)){
+                if(game.isEnemy(this.i + z, this.j + z)){
+                    all_moves.push([this.i + z, this.j + z]);
+                }
                 break;
             }
             all_moves.push([this.i + z, this.j + z]);
@@ -445,6 +540,9 @@ class Queen extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i - z, this.j + z)){
+                if(game.isEnemy(this.i - z, this.j + z)){
+                    all_moves.push([this.i - z, this.j + z]);
+                }
                 break;
             }
             all_moves.push([this.i - z, this.j + z]);
@@ -454,6 +552,9 @@ class Queen extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i + z, this.j - z)){
+                if(game.isEnemy(this.i + z, this.j - z)){
+                    all_moves.push([this.i + z, this.j - z]);
+                }
                 break;
             }
             all_moves.push([this.i + z, this.j - z]);
@@ -463,6 +564,9 @@ class Queen extends Piece{
                 break;
             }
             else if(game.hasPiece(this.i - z, this.j - z)){
+                if(game.isEnemy(this.i - z, this.j - z)){
+                    all_moves.push([this.i - z, this.j - z]);
+                }
                 break;
             }
             all_moves.push([this.i - z, this.j - z]);
