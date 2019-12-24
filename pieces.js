@@ -9,10 +9,21 @@ class Piece{
         this.validMoves = []; //gets all valid moves on this term in "[i, j]" format
     }
     
-    move(i, j){ //returns new [i, j] if moved, otherwise return false
-        if(this.game.isFriend(i, j)){
-            return false
+    move(i, j){ //returns new [old_i, old_j, new_i, new_j] if moved, otherwise return false
+        if(this.game.isFriend(i, j)){ //cannot move on top of another friendly piece
+            return false;
         }
+        else if(!this.game.hasPiece(i, j)){ //otherwise if i,j is empty, move there
+            var old_i = this.i;
+            var old_j = this.j;
+            this.i = i;
+            this.j = j;
+            return [old_i, old_j, i, j];
+        }
+        else if(this.game.isEnemy(i, j)){ //otherwise if we are attempting to attack an enemy
+            
+        }
+        return false; //otherwise just return false
     }
     
     select(){

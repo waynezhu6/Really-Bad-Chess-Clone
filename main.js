@@ -142,10 +142,6 @@ class ChessGame{
         var j = parseInt(id[1]);
         var piece = this.board[i][j];
         
-        console.log(id);
-        console.log(this.currentSelected);
-        console.log(piece);
-        
         if(this.currentSelected == null){ //if no piece is selected
             if(piece != null){ //if this tile contains a piece...
                 if(piece.color == this.currentPlayer){  //...and it belongs to the current player
@@ -155,19 +151,31 @@ class ChessGame{
             }
         }
         else{ //if a piece is selected perform a possible movement or deselection
-            var values = piece.move(i, j); //attempt to make a move
+            var values = this.currentSelected.move(i, j); //attempt to make a move
             if(values == false){ //deselect if move failed
-                piece.deselect();
+                this.currentSelected.deselect();
+                if(this.isFriend(i, j)){ //but if another friendly piece is clicked, select that instead
+                    this.currentSelected = piece;
+                    this.currentSelected.select();
+                }
             }
             else{
-                this.movePiece(piece, i, j);
+                this.movePiece(values[0], values[1], values[2], values[3]);
+                this.currentSelected.deselect();
+                this.currentSelected = null;
+                //GOOD PLACE TO IMPLEMENT UNDO
             }
-            this.currentSelected = null;
         }
     }
     
-    movePiece(piece, newI, newJ){
-    
+    movePiece(old_i, old_j, new_i, new_j){ //updates this.board
+        var piece = this.board[old_i][old_j];
+        this.board[old_i][old_j] = null;
+        if(this.isEnemy(new_i, new_j)){
+            //DO SOMETHING IF MOVED ONTO AN ENEMY
+        }
+        this.board[new_i][new_j] = piece;
+        this.draw(); //redraw the gameboard
     }
     
     checkForMate(){
