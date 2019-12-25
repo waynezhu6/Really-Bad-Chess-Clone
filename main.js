@@ -54,22 +54,14 @@ class ChessGame{
         this.board[0][6] = new Knight(this, "white", 0, 6);
         this.board[0][7] = new Rook(this, "white", 0, 7);
         
-        for(var i = 0; i < 8; i++){
-            for(var j = 0; j < 8; j++){
-                if(this.board[i][j] != null){
-                    this.board[i][j].getValidMoves(this);
-                }
-            }
-        }
-        
-        this.board[7][0] = new Rook("black", 7, 0);
-        this.board[7][1] = new Knight("black", 7, 1);
-        this.board[7][2] = new Bishop("black", 7, 2);
-        this.board[7][3] = new King("black", 7, 3);
-        this.board[7][4] = new Queen("black", 7, 4);
-        this.board[7][5] = new Bishop("black", 7, 5);
-        this.board[7][6] = new Knight("black", 7, 6);
-        this.board[7][7] = new Rook("black", 7, 7);
+        this.board[7][0] = new Rook(this, "black", 7, 0);
+        this.board[7][1] = new Knight(this, "black", 7, 1);
+        this.board[7][2] = new Bishop(this, "black", 7, 2);
+        this.board[7][3] = new King(this, "black", 7, 3);
+        this.board[7][4] = new Queen(this, "black", 7, 4);
+        this.board[7][5] = new Bishop(this, "black", 7, 5);
+        this.board[7][6] = new Knight(this, "black", 7, 6);
+        this.board[7][7] = new Rook(this, "black", 7, 7);
         
         this.getValidMoves();      
     }
@@ -153,17 +145,18 @@ class ChessGame{
             }
         }
         else{ //if a piece is selected perform a possible movement or deselection
-            var values = this.currentSelected.move(i, j); //attempt to make a move
+            var values = this.currentSelected.move(this, i, j); //attempt to make a move
             if(values == false){ //deselect if move failed
-                this.currentSelected.deselect();
-                if(this.isFriend(i, j)){ //but if another friendly piece is clicked, select that instead
+                if(piece == this.currentSelected){ //deselect if the same piece is clicked again
+                    this.currentSelected = null;
+                }
+                else if(this.isFriend(i, j)){ //but if another friendly piece is clicked, select that instead
                     this.currentSelected = piece;
                     this.currentSelected.select();
                 }
             }
             else{
                 this.movePiece(values[0], values[1], values[2], values[3]);
-                this.currentSelected.deselect();
                 this.currentSelected = null;
                 //GOOD PLACE TO IMPLEMENT UNDO
                 this.nextTurn();
@@ -209,8 +202,16 @@ class ChessGame{
         return false;
     }
     
-    checkForMate(player){
+    checkForMate(player){ //check if this player has been checkmated
+        var playerMoves = [];
+        player == "white" ? playerMoves = this.whiteMoves : playerMoves = this.blackMoves;
         
+        for(var i = 0; i < playerMoves.length; i++){ //simulate through every possible move player can make
+            var curr = playerMoves[i];
+            var simulatedBoard = this.board;
+            var piece = simulatedBoard[curr[0][0]][curr[0][1]]; //get piece at 'from'
+            
+        }
     }
     
     getValidMoves(){
@@ -221,16 +222,16 @@ class ChessGame{
             for(var j = 0; j < 8; j++){
                 var piece = this.board[i][j];
                 if(piece != null){
-                    var moves = piece.getValidMoves();
+                    var moves = piece.getValidMoves(this);
                     var from = [i, j];
                     
                     for(var x = 0; x < moves.length; x++){
                         var to = moves[x];
                         if(piece.color == "white"){
-                            whiteMoves.push([from], [to]);
+                            whiteMoves.push([[from], [to]]);
                         }
                         else{
-                            blackMoves.push([from], [to]);
+                            blackMoves.push([[from], [to]]);
                         }
                     }
                 }
@@ -245,6 +246,9 @@ class ChessGame{
     }
     
     isEnemy(i, j){
+        if(!within_range(i, j)){
+            return false;
+        }
         if(this.board[i][j] == null){
             return false;
         }
@@ -252,6 +256,9 @@ class ChessGame{
     }
     
     isFriend(i, j){
+        if(!within_range(i, j)){
+            return false;
+        }
         if(this.board[i][j] == null){
             return false;
         }
@@ -265,6 +272,8 @@ class ChessGame{
         else{
             this.currentPlayer = "white";
         }
+        this.getValidMoves(); //update list of valid moves;
+        console.log(this.isChecked(this.player));
     }
 
 }

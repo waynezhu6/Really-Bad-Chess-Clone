@@ -9,8 +9,9 @@ class Piece{
         this.validMoves = []; //gets all valid moves on this term in "[i, j]" format
     }
     
-    move(i, j){ //returns new [old_i, old_j, new_i, new_j] if moved, otherwise return false
+    move(game, i, j){ //returns new [old_i, old_j, new_i, new_j] if moved, otherwise return false
         if(this.game.isFriend(i, j)){ //cannot move on top of another friendly piece
+            this.deselect();
             return false;
         }
         else if(!this.game.hasPiece(i, j)){ //otherwise if i,j is empty, move there
@@ -18,10 +19,17 @@ class Piece{
             var old_j = this.j;
             this.i = i;
             this.j = j;
+            this.deselect();
+            this.getValidMoves(game);
+            this.firstMove = false;
             return [old_i, old_j, i, j];
         }
         else if(this.game.isEnemy(i, j)){ //otherwise if we are attempting to attack an enemy
-            
+            //do something here, then...
+            this.deselect();
+            this.getValidMoves(game);
+            this.firstMove = false;
+            //return something
         }
         return false; //otherwise just return false
     }
@@ -32,7 +40,6 @@ class Piece{
             var element = document.getElementById(toString(id));
             element.setAttribute("data-selected", "true");
         }
-        console.log('select');
     }
     
     deselect(){
@@ -53,6 +60,7 @@ class Piece{
             }
         }
         this.validMoves = validMoves;
+        return validMoves;
     }
 }
 
@@ -119,8 +127,6 @@ class Rook extends Piece{
                 }
                 break;
             }
-            console.log(this.i, j)
-            console.log(game.hasPiece(this.i, j))
             all_moves.push([this.i, j]);
         }
         
@@ -147,19 +153,28 @@ class Rook extends Piece{
 }
 
 class Knight extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+    constructor(game, color, i, j){
+        super(game, color, i, j);
     }
     
     getAllMoves(game){
-        var all_moves = [[this.i - 2, this.j + 1], [this.i - 1, this.j + 2], [this.i + 1, this.j + 2], [this.i + 2, this.j + 1], [this.i + 2, this.j - 1], [this.i + 1, this.j - 2], [this.i - 1, this.j - 2], [this.i - 2, this.j - 1]];
+        var lst = [[this.i - 2, this.j + 1], [this.i - 1, this.j + 2], [this.i + 1, this.j + 2], [this.i + 2, this.j + 1], [this.i + 2, this.j - 1], [this.i + 1, this.j - 2], [this.i - 1, this.j - 2], [this.i - 2, this.j - 1]];
+        
+        var all_moves = []
+        for(var x = 0; x < lst.length; x++){
+            var move = lst[x];
+            if(!game.isFriend(move[0], move[1])){
+                all_moves.push(move);
+            }
+        }
+        
         return all_moves;
     }
 }
 
 class Bishop extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+    constructor(game, color, i, j){
+        super(game, color, i, j);
     }
     
     getAllMoves(game){
@@ -218,8 +233,8 @@ class Bishop extends Piece{
 }
 
 class Queen extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+    constructor(game, color, i, j){
+        super(game, color, i, j);
     }
     
     getAllMoves(game){
@@ -317,12 +332,21 @@ class Queen extends Piece{
 }
 
 class King extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+    constructor(game, color, i, j){
+        super(game, color, i, j);
     }
     
     getAllMoves(game){
-        var all_moves = [[this.i + 1, this.j], [this.i - 1, this.j], [this.i, this.j - 1], [this.i, this.j + 1]];
+        var lst = [[this.i + 1, this.j], [this.i - 1, this.j], [this.i, this.j - 1], [this.i, this.j + 1]];
+        
+        var all_moves = []
+        for(var x = 0; x < lst.length; x++){
+            var move = lst[x];
+            if(!game.isFriend(move[0], move[1])){
+                all_moves.push(move);
+            }
+        }
+        
         return all_moves;
     }
 }
