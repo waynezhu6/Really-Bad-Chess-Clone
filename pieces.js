@@ -23,12 +23,13 @@ class Piece{
                 this.firstMove = false;
                 return [old_i, old_j, i, j];
             }
-            return true;
+            return false;
         }
         return false; //otherwise just return false
     }
     
     select(board){
+        this.getValidMoves(board, true);
         for(var i = 0; i < this.validMoves.length; i++){
             var id = this.validMoves[i];
             var element = document.getElementById(toString(id));
@@ -57,10 +58,10 @@ class Piece{
             var move = allMoves[x];
             if(within_range(move[0], move[1])){
                 if(checkSensitive){
-                    var simulatedBoard = new Board(board);
+                    var simulatedBoard = new Board(deepCopy(board.board));
                     simulatedBoard.movePiece(this.i, this.j, move[0], move[1]);
 
-                    if(!board.isChecked(simulatedBoard, this.color)){
+                    if(!simulatedBoard.isChecked(this.color)){
                         validMoves.push(move);
                     }
                 }
