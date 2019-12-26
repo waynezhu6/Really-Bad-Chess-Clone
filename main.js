@@ -165,6 +165,14 @@ class ChessGame{
         this.currentPlayer = !this.currentPlayer;
         console.log(this.board.isCheckmated(this.currentPlayer));
         console.log(this.board.isChecked(this.currentPlayer));
+        
+        var moves = [];
+        this.currentPlayer ? moves = this.board.whiteMoves : moves = this.board.blackMoves;
+        var result = evaluate(this.board.board, moves, false);
+        this.movePiece(result[0][0], result[0][1], result[1][0], result[1][1]);
+        this.board.setValidMoves(true); //update list of valid moves
+        this.currentPlayer = !this.currentPlayer;
+        
     }
 
 }
@@ -301,15 +309,10 @@ class Board{ //representing a game board containing pieces
 //        }
 //        return true;
         
-        for(var i = 0; i < 8; i++){
-            for(var j = 0; j < 8; j++){
-                var piece = this.board[i][j];
-                if(piece != null){
-                    if(piece.color == player && piece.validMoves.length > 0){
-                        return true;
-                    }
-                }
-            }
+        var moves = [];
+        player ? moves = this.whiteMoves : moves = this.blackMoves;
+        if(moves.length == 0){
+            return true;
         }
         return false;
         
