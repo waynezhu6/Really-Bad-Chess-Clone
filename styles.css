@@ -57,3 +57,7 @@ html {
 [data-selected = "true"]{
     background-color: lightskyblue;
 }
+
+[data-attacked = "true"]{
+    background-color: red;
+}

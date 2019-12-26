@@ -1,7 +1,6 @@
 class Piece{
     constructor(game, color, i, j){
-        this.game = game;
-        this.color = color; //color of this piece white or black
+        this.color = color; //true if white
         this.alive = true; //if this piece is uncaptured
         this.i = i; 
         this.j = j;
@@ -9,36 +8,36 @@ class Piece{
         this.validMoves = []; //gets all valid moves on this term in "[i, j]" format
     }
     
-    move(game, i, j){ //returns new [old_i, old_j, new_i, new_j] if moved, otherwise return false
-        if(this.game.isFriend(i, j)){ //cannot move on top of another friendly piece
-            this.deselect();
+    move(board, i, j){ //returns new [old_i, old_j, new_i, new_j] if moved, otherwise return false
+        if(board.isFriend(i, j, this.color)){ //cannot move on top of another friendly piece
             return false;
         }
-        else if(!this.game.hasPiece(i, j)){ //otherwise if i,j is empty, move there
-            var old_i = this.i;
-            var old_j = this.j;
-            this.i = i;
-            this.j = j;
-            this.deselect();
-            this.getValidMoves(game);
-            this.firstMove = false;
-            return [old_i, old_j, i, j];
-        }
-        else if(this.game.isEnemy(i, j)){ //otherwise if we are attempting to attack an enemy
-            //do something here, then...
-            this.deselect();
-            this.getValidMoves(game);
-            this.firstMove = false;
-            //return something
+        else if(!board.hasPiece(i, j) || board.isEnemy(i, j, this.color)){ //otherwise if i,j is empty, move there
+            if(contains(this.validMoves, [i, j])){
+                this.deselect();
+                var old_i = this.i;
+                var old_j = this.j;
+                this.i = i;
+                this.j = j;
+                this.getValidMoves(board);
+                this.firstMove = false;
+                return [old_i, old_j, i, j];
+            }
+            return true;
         }
         return false; //otherwise just return false
     }
     
-    select(){
+    select(board){
         for(var i = 0; i < this.validMoves.length; i++){
-            var id = this.validMoves[i]
+            var id = this.validMoves[i];
             var element = document.getElementById(toString(id));
-            element.setAttribute("data-selected", "true");
+            if(board.isEnemy(id[0], id[1], this.color)){
+                element.setAttribute("data-attacked", "true");   
+            }
+            else{
+                element.setAttribute("data-selected", "true");
+            }
         }
     }
     
@@ -47,21 +46,33 @@ class Piece{
             var id = this.validMoves[i]
             var element = document.getElementById(toString(id));
             element.setAttribute("data-selected", "false");
+            element.setAttribute("data-attacked", "false");
         }
     }
     
-    getValidMoves(game){ //returns valid move in [i, j] format, removing off--board choices
-        var allMoves = this.getAllMoves(game);
-        var validMoves = []
+    getValidMoves(board, checkSensitive){ //returns valid move in [i, j] format, removing off--board choices
+        var allMoves = this.getAllMoves(board);
+        var validMoves = [];
         for(var x = 0; x < allMoves.length; x++){
-            var curr = allMoves[x];
-            if(within_range(curr[0], curr[1])){
-                validMoves.push(curr);
+            var move = allMoves[x];
+            if(within_range(move[0], move[1])){
+                if(checkSensitive){
+                    var simulatedBoard = new Board(board);
+                    simulatedBoard.movePiece(this.i, this.j, move[0], move[1]);
+
+                    if(!board.isChecked(simulatedBoard, this.color)){
+                        validMoves.push(move);
+                    }
+                }
+                else{
+                    validMoves.push(move);
+                }
             }
         }
         this.validMoves = validMoves;
         return validMoves;
     }
+
 }
 
 class Pawn extends Piece{
@@ -69,33 +80,33 @@ class Pawn extends Piece{
         super(game, color, i, j);
     }
     
-    getAllMoves(game){ //returns moves in [i, j] format
+    getAllMoves(board){ //returns moves in [i, j] format
         var all_moves = [];
-        if(this.color == "white"){
-            if(!game.hasPiece(this.i + 1, this.j)){
+        if(this.color){
+            if(!board.hasPiece(this.i + 1, this.j)){
                 all_moves = [[this.i + 1, this.j]];
-                if(this.firstMove && !game.hasPiece(this.i + 2, this.j)){
+                if(this.firstMove && !board.hasPiece(this.i + 2, this.j)){
                     all_moves.push([this.i + 2, this.j]);
                 }
             }
-            if(game.isEnemy(this.i + 1, this.j - 1)){
+            if(board.isEnemy(this.i + 1, this.j - 1, this.color)){
                 all_moves.push([this.i + 1, this.j - 1]);
             }
-            if(game.isEnemy(this.i + 1, this.j + 1)){
+            if(board.isEnemy(this.i + 1, this.j + 1, this.color)){
                 all_moves.push([this.i + 1, this.j + 1]);
             }
         }
         else{
-            if(!game.hasPiece(this.i - 1, this.j)){
+            if(!board.hasPiece(this.i - 1, this.j)){
                 all_moves = [[this.i - 1, this.j]];
-                if(this.firstMove && !game.hasPiece(this.i - 2, this.j)){
+                if(this.firstMove && !board.hasPiece(this.i - 2, this.j)){
                     all_moves.push([this.i - 2, this.j]);
                 }
             }
-            if(game.isEnemy(this.i - 1, this.j - 1)){
+            if(board.isEnemy(this.i - 1, this.j - 1, this.color)){
                 all_moves.push([this.i - 1, this.j - 1]);
             }
-            if(game.isEnemy(this.i - 1, this.j + 1)){
+            if(board.isEnemy(this.i - 1, this.j + 1, this.color)){
                 all_moves.push([this.i - 1, this.j + 1]);
             }
         }
@@ -109,11 +120,11 @@ class Rook extends Piece{
         super(game, color, i, j);
     }
     
-    getAllMoves(game){
+    getAllMoves(board){
         var all_moves = [];
         for(var j = this.j - 1; j >= 0; j -= 1){
-            if(game.hasPiece(this.i, j)){
-                if(game.isEnemy(this.i, j)){
+            if(board.hasPiece(this.i, j)){
+                if(board.isEnemy(this.i, j, this.color)){
                     all_moves.push([this.i, j]);
                 }
                 break;
@@ -121,8 +132,8 @@ class Rook extends Piece{
             all_moves.push([this.i, j]);
         }
         for(var j = this.j + 1; j < 8; j++){
-            if(game.hasPiece(this.i, j)){
-                if(game.isEnemy(this.i, j)){
+            if(board.hasPiece(this.i, j)){
+                if(board.isEnemy(this.i, j, this.color)){
                     all_moves.push([this.i, j]);
                 }
                 break;
@@ -131,8 +142,8 @@ class Rook extends Piece{
         }
         
         for(var i = this.i - 1; i >= 0; i -= 1){
-            if(game.hasPiece(i, this.j)){
-                if(game.isEnemy(i, this.j)){
+            if(board.hasPiece(i, this.j)){
+                if(board.isEnemy(i, this.j, this.color)){
                     all_moves.push([i, this.j]);
                 }
                 break;
@@ -140,8 +151,8 @@ class Rook extends Piece{
             all_moves.push([i, this.j]);
         }
         for(var i = this.i + 1; i < 8; i++){
-            if(game.hasPiece(i, this.j)){
-                if(game.isEnemy(i, this.j)){
+            if(board.hasPiece(i, this.j)){
+                if(board.isEnemy(i, this.j, this.color)){
                     all_moves.push([i, this.j]);
                 }
                 break;
@@ -157,13 +168,13 @@ class Knight extends Piece{
         super(game, color, i, j);
     }
     
-    getAllMoves(game){
+    getAllMoves(board){
         var lst = [[this.i - 2, this.j + 1], [this.i - 1, this.j + 2], [this.i + 1, this.j + 2], [this.i + 2, this.j + 1], [this.i + 2, this.j - 1], [this.i + 1, this.j - 2], [this.i - 1, this.j - 2], [this.i - 2, this.j - 1]];
         
         var all_moves = []
         for(var x = 0; x < lst.length; x++){
             var move = lst[x];
-            if(!game.isFriend(move[0], move[1])){
+            if(!board.isFriend(move[0], move[1], this.color)){
                 all_moves.push(move);
             }
         }
@@ -177,15 +188,15 @@ class Bishop extends Piece{
         super(game, color, i, j);
     }
     
-    getAllMoves(game){
+    getAllMoves(board){
         var all_moves = [];
         
         for(var z = 1; z < 8; z++){ //down and right
             if(!within_range(this.i + z, this.j + z)){
                 break;
             }
-            else if(game.hasPiece(this.i + z, this.j + z)){
-                if(game.isEnemy(this.i + z, this.j + z)){
+            else if(board.hasPiece(this.i + z, this.j + z)){
+                if(board.isEnemy(this.i + z, this.j + z, this.color)){
                     all_moves.push([this.i + z, this.j + z]);
                 }
                 break;
@@ -196,8 +207,8 @@ class Bishop extends Piece{
             if(!within_range(this.i - z, this.j + z)){
                 break;
             }
-            else if(game.hasPiece(this.i - z, this.j + z)){
-                if(game.isEnemy(this.i - z, this.j + z)){
+            else if(board.hasPiece(this.i - z, this.j + z)){
+                if(board.isEnemy(this.i - z, this.j + z, this.color)){
                     all_moves.push([this.i - z, this.j + z]);
                 }
                 break;
@@ -208,8 +219,8 @@ class Bishop extends Piece{
             if(!within_range(this.i + z, this.j - z)){
                 break;
             }
-            else if(game.hasPiece(this.i + z, this.j - z)){
-                if(game.isEnemy(this.i + z, this.j - z)){
+            else if(board.hasPiece(this.i + z, this.j - z)){
+                if(board.isEnemy(this.i + z, this.j - z, this.color)){
                     all_moves.push([this.i + z, this.j - z]);
                 }
                 break;
@@ -220,8 +231,8 @@ class Bishop extends Piece{
             if(!within_range(this.i - z, this.j - z)){
                 break;
             }
-            else if(game.hasPiece(this.i - z, this.j - z)){
-                if(game.isEnemy(this.i - z, this.j - z)){
+            else if(board.hasPiece(this.i - z, this.j - z)){
+                if(board.isEnemy(this.i - z, this.j - z, this.color)){
                     all_moves.push([this.i - z, this.j - z]);
                 }
                 break;
@@ -237,12 +248,12 @@ class Queen extends Piece{
         super(game, color, i, j);
     }
     
-    getAllMoves(game){
+    getAllMoves(board){
         var all_moves = [];
         
         for(var j = this.j - 1; j >= 0; j -= 1){
-            if(game.hasPiece(this.i, j)){
-                if(game.isEnemy(this.i, j)){
+            if(board.hasPiece(this.i, j)){
+                if(board.isEnemy(this.i, j, this.color)){
                     all_moves.push([this.i, j]);
                 }
                 break;
@@ -250,8 +261,8 @@ class Queen extends Piece{
             all_moves.push([this.i, j]);
         }
         for(var j = this.j + 1; j < 8; j++){
-            if(game.hasPiece(this.i, j)){
-                if(game.isEnemy(this.i, j)){
+            if(board.hasPiece(this.i, j)){
+                if(board.isEnemy(this.i, j, this.color)){
                     all_moves.push([this.i, j]);
                 }
                 break;
@@ -260,8 +271,8 @@ class Queen extends Piece{
         }
         
         for(var i = this.i - 1; i >= 0; i -= 1){
-            if(game.hasPiece(i, this.j)){
-                if(game.isEnemy(i, this.j)){
+            if(board.hasPiece(i, this.j)){
+                if(board.isEnemy(i, this.j, this.color)){
                     all_moves.push([i, this.j]);
                 }
                 break;
@@ -269,8 +280,8 @@ class Queen extends Piece{
             all_moves.push([i, this.j]);
         }
         for(var i = this.i + 1; i < 8; i++){
-            if(game.hasPiece(i, this.j)){
-                if(game.isEnemy(i, this.j)){
+            if(board.hasPiece(i, this.j)){
+                if(board.isEnemy(i, this.j, this.color)){
                     all_moves.push([i, this.j]);
                 }
                 break;
@@ -282,8 +293,8 @@ class Queen extends Piece{
             if(!within_range(this.i + z, this.j + z)){
                 break;
             }
-            else if(game.hasPiece(this.i + z, this.j + z)){
-                if(game.isEnemy(this.i + z, this.j + z)){
+            else if(board.hasPiece(this.i + z, this.j + z)){
+                if(board.isEnemy(this.i + z, this.j + z, this.color)){
                     all_moves.push([this.i + z, this.j + z]);
                 }
                 break;
@@ -294,8 +305,8 @@ class Queen extends Piece{
             if(!within_range(this.i - z, this.j + z)){
                 break;
             }
-            else if(game.hasPiece(this.i - z, this.j + z)){
-                if(game.isEnemy(this.i - z, this.j + z)){
+            else if(board.hasPiece(this.i - z, this.j + z)){
+                if(board.isEnemy(this.i - z, this.j + z, this.color)){
                     all_moves.push([this.i - z, this.j + z]);
                 }
                 break;
@@ -306,8 +317,8 @@ class Queen extends Piece{
             if(!within_range(this.i + z, this.j - z)){
                 break;
             }
-            else if(game.hasPiece(this.i + z, this.j - z)){
-                if(game.isEnemy(this.i + z, this.j - z)){
+            else if(board.hasPiece(this.i + z, this.j - z)){
+                if(board.isEnemy(this.i + z, this.j - z, this.color)){
                     all_moves.push([this.i + z, this.j - z]);
                 }
                 break;
@@ -318,8 +329,8 @@ class Queen extends Piece{
             if(!within_range(this.i - z, this.j - z)){
                 break;
             }
-            else if(game.hasPiece(this.i - z, this.j - z)){
-                if(game.isEnemy(this.i - z, this.j - z)){
+            else if(board.hasPiece(this.i - z, this.j - z)){
+                if(board.isEnemy(this.i - z, this.j - z, this.color)){
                     all_moves.push([this.i - z, this.j - z]);
                 }
                 break;
@@ -336,13 +347,13 @@ class King extends Piece{
         super(game, color, i, j);
     }
     
-    getAllMoves(game){
+    getAllMoves(board){
         var lst = [[this.i + 1, this.j], [this.i - 1, this.j], [this.i, this.j - 1], [this.i, this.j + 1]];
         
         var all_moves = []
         for(var x = 0; x < lst.length; x++){
             var move = lst[x];
-            if(!game.isFriend(move[0], move[1])){
+            if(!board.isFriend(move[0], move[1], this.color)){
                 all_moves.push(move);
             }
         }
