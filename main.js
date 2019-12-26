@@ -27,8 +27,8 @@ class ChessGame{
         board[0][0] = new Rook(this, true, 0, 0);
         board[0][1] = new Knight(this, true, 0, 1);
         board[0][2] = new Bishop(this, true, 0, 2);
-        board[0][3] = new King(this, true, 0, 3);
-        board[0][4] = new Queen(this, true, 0, 4);
+        board[0][3] = new Queen(this, true, 0, 3);
+        board[0][4] = new King(this, true, 0, 4);
         board[0][5] = new Bishop(this, true, 0, 5);
         board[0][6] = new Knight(this, true, 0, 6);
         board[0][7] = new Rook(this, true, 0, 7);
@@ -36,8 +36,8 @@ class ChessGame{
         board[7][0] = new Rook(this, false, 7, 0);
         board[7][1] = new Knight(this, false, 7, 1);
         board[7][2] = new Bishop(this, false, 7, 2);
-        board[7][3] = new King(this, false, 7, 3);
-        board[7][4] = new Queen(this, false, 7, 4);
+        board[7][3] = new Queen(this, false, 7, 3);
+        board[7][4] = new King(this, false, 7, 4);
         board[7][5] = new Bishop(this, false, 7, 5);
         board[7][6] = new Knight(this, false, 7, 6);
         board[7][7] = new Rook(this, false, 7, 7);
@@ -224,7 +224,7 @@ class Board{ //representing a game board containing pieces
 
                         for(var x = 0; x < validMoves.length; x++){
                             var to = validMoves[x];
-                            moves.push([[from], [to]]);
+                            moves.push([from, to]);
                         }
                     }
                 }
@@ -274,32 +274,45 @@ class Board{ //representing a game board containing pieces
         return false;
     }
     
-    isCheckmated(board, player){ //check if this player has been checkmated
-        var opponent = !player;
-        var playerMoves = [];
-        var opponentMoves = [];
-        player ? playerMoves = this.whiteMoves : playerMoves = this.blackMoves;
-        player ? opponentMoves = this.blackMoves : opponentMoves = this.whiteMoves;
-
-        for(var i = 0; i < playerMoves.length; i++){ //simulate through every possible move player can make
-            var curr = playerMoves[i];
-            var simulatedBoard = new Board(deepCopy(this.board));
-            var piece = simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
-            
-            var checked = false;
-            for(var j = 0; j < opponentMoves.length; j++){
-                var curr = opponentMoves[i];
-                var piece = simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
-                if(isChecked(simulatedBoard, player)){
-                    checked = true;
-                    break;
+    isCheckmated(player){ //check if this player has been checkmated
+//        var opponent = !player;
+//        var playerMoves = [];
+//        var opponentMoves = [];
+//        player ? playerMoves = this.whiteMoves : playerMoves = this.blackMoves;
+//        player ? opponentMoves = this.blackMoves : opponentMoves = this.whiteMoves;
+//        
+//        for(var i = 0; i < playerMoves.length; i++){ //simulate through every possible move player can make
+//            var curr = playerMoves[i];
+//            var simulatedBoard = new Board(deepCopy(this.board));
+//            simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
+//            
+//            var checked = false;
+//            for(var j = 0; j < opponentMoves.length; j++){
+//                var curr = opponentMoves[i];
+//                simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
+//                if(simulatedBoard.isChecked(player)){
+//                    checked = true;
+//                    break;
+//                }
+//            }
+//            if(!checked){
+//                return false;
+//            }
+//        }
+//        return true;
+        
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                var piece = this.board[i][j];
+                if(piece != null){
+                    if(piece.color == player && piece.validMoves.length > 0){
+                        return true;
+                    }
                 }
             }
-            if(!checked){
-                return false;
-            }
         }
-        return true;
+        return false;
+        
     }
 }
                
