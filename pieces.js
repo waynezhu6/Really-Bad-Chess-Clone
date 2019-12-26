@@ -60,7 +60,6 @@ class Piece{
                 if(checkSensitive){
                     var simulatedBoard = new Board(deepCopy(board.board));
                     simulatedBoard.movePiece(this.i, this.j, move[0], move[1]);
-
                     if(!simulatedBoard.isChecked(this.color)){
                         validMoves.push(move);
                     }
