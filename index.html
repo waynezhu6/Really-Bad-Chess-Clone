@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <script src = "main.js"></script>
+    <script src = "pieces.js"></script>
     <title>Really Bad Chess</title>
 </head>
   
@@ -16,11 +17,34 @@
     
     <script>
         
+        function generateBoard(element){
+            for(var i = 0; i < 8; i++){
+                var div = document.createElement("div");
+                div.setAttribute("class", "row");
+                for(var j = 0; j < 8; j++){
+                    var tile = null;
+                    if((i + j) % 2 == 0){
+                        tile = document.createElement("div");
+                        tile.setAttribute("class", "white_tile");
+                    }
+                    else{
+                        tile = document.createElement("div");
+                        tile.setAttribute("class", "black_tile");
+                    }
+                    tile.setAttribute("id", String(i) + String(j));
+                    tile.setAttribute("onclick", "G.onClick(this.id)");
+                    tile.style.top = String(75 * i + 2);
+                    tile.style.left = String(75 * j + 2);
+                    div.appendChild(tile);
+                }
+                element.appendChild(div);
+            }
+        }
+        
         var chessboard = document.getElementById("0");
         generateBoard(chessboard);
         
         var G = new ChessGame();
-        G.generateGame();
         G.draw()
         
     </script>

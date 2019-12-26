@@ -1,67 +1,48 @@
-function generateBoard(element){
-    for(var i = 0; i < 8; i++){
-        var div = document.createElement("div");
-        div.setAttribute("class", "row");
-        for(var j = 0; j < 8; j++){
-            var tile = null;
-            if((i + j) % 2 == 0){
-                tile = document.createElement("div");
-                tile.setAttribute("class", "white_tile");
-            }
-            else{
-                tile = document.createElement("div");
-                tile.setAttribute("class", "black_tile");
-            }
-            tile.setAttribute("id", String(i) + String(j));
-            tile.setAttribute("onclick", "G.onClick(this.id)");
-            tile.style.top = String(75 * i + 2);
-            tile.style.left = String(75 * j + 2);
-            div.appendChild(tile);
-        }
-        element.appendChild(div);
-    }
-}
-
 class ChessGame{
     constructor(){
-        this.current = "white";
         this.game_playing = false;
-        this.board = [];
-        this.currentPlayer = "white";
-        this.currentSelected = null;
-        this.currentMoves = [];
+        this.board = new Board(this.generateBoard()); //the board of this game
+        this.currentPlayer = true; //true if white
+        this.currentSelected = null; //the currently selected piece
         
+        this.board.setValidMoves(false);
+    }
+    
+    generateBoard(){ //places all game pieces onto the board
+        
+        var board = []
         for(var i = 0; i < 8; i++){
             var row = [];
             for(var j = 0; j < 8; j++){
                 row.push(null);
             }
-            this.board.push(row);
+            board.push(row);
         }
-    }
-    
-    generateGame(){ //places all game pieces onto the board
+        
         for(var j = 0; j < 8; j++){
-            this.board[1][j] = new Pawn(this, "white", 1, j);
-            this.board[6][j] = new Pawn(this, "black", 6, j);
-        }
-        this.board[0][0] = new Rook(this, "white", 0, 0);
-        this.board[0][1] = new Knight(this, "white", 0, 1);
-        this.board[0][2] = new Bishop(this, "white", 0, 2);
-        this.board[0][3] = new King(this, "white", 0, 3);
-        this.board[0][4] = new Queen(this, "white", 0, 4);
-        this.board[0][5] = new Bishop(this, "white", 0, 5);
-        this.board[0][6] = new Knight(this, "white", 0, 6);
-        this.board[0][7] = new Rook(this, "white", 0, 7);
-        
-        for(var i = 0; i < 8; i++){
-            for(var j = 0; j < 8; j++){
-                if(this.board[i][j] != null){
-                    this.board[i][j].getValidMoves(this);
-                }
-            }
+            board[1][j] = new Pawn(this, true, 1, j);
+            board[6][j] = new Pawn(this, false, 6, j);
         }
         
+        board[0][0] = new Rook(this, true, 0, 0);
+        board[0][1] = new Knight(this, true, 0, 1);
+        board[0][2] = new Bishop(this, true, 0, 2);
+        board[0][3] = new King(this, true, 0, 3);
+        board[0][4] = new Queen(this, true, 0, 4);
+        board[0][5] = new Bishop(this, true, 0, 5);
+        board[0][6] = new Knight(this, true, 0, 6);
+        board[0][7] = new Rook(this, true, 0, 7);
+        
+        board[7][0] = new Rook(this, false, 7, 0);
+        board[7][1] = new Knight(this, false, 7, 1);
+        board[7][2] = new Bishop(this, false, 7, 2);
+        board[7][3] = new King(this, false, 7, 3);
+        board[7][4] = new Queen(this, false, 7, 4);
+        board[7][5] = new Bishop(this, false, 7, 5);
+        board[7][6] = new Knight(this, false, 7, 6);
+        board[7][7] = new Rook(this, false, 7, 7);
+        
+        return board;
     }
     
     draw(){
@@ -69,31 +50,58 @@ class ChessGame{
             for(var j = 0; j < 8; j++){
                 var tileID = String(i) + String(j);
                 var tile = document.getElementById(tileID);
-                var piece = this.board[i][j];
+                var piece = this.board.board[i][j];
                 
                 if(piece != null){
-                    switch(piece.constructor){
-                    case Pawn:
-                        tile.innerHTML = "&#9817;";
-                        break;
-                    case Rook:
-                        tile.innerHTML = "&#9814;";
-                        break;
-                    case Knight:
-                        tile.innerHTML = "&#9816;";
-                        break;
-                    case Bishop:
-                        tile.innerHTML = "&#9815;";
-                        break;
-                    case Queen:
-                        tile.innerHTML = "&#9813;";
-                        break;
-                    case King:
-                        tile.innerHTML = "&#9812;";
-                        break;
-                    default:
-                        tile.innerHTML = "?";
+                    if(piece.color){
+                        switch(piece.constructor){
+                            case Pawn:
+                                tile.innerHTML = "&#9817;";
+                                break;
+                            case Rook:
+                                tile.innerHTML = "&#9814;";
+                                break;
+                            case Knight:
+                                tile.innerHTML = "&#9816;";
+                                break;
+                            case Bishop:
+                                tile.innerHTML = "&#9815;";
+                                break;
+                            case Queen:
+                                tile.innerHTML = "&#9813;";
+                                break;
+                            case King:
+                                tile.innerHTML = "&#9812;";
+                                break;
+                            default:
+                                tile.innerHTML = "?";
+                        }
                     }
+                    else{
+                        switch(piece.constructor){
+                            case Pawn:
+                                tile.innerHTML = "&#9823;";
+                                break;
+                            case Rook:
+                                tile.innerHTML = "&#9820;";
+                                break;
+                            case Knight:
+                                tile.innerHTML = "&#9822;";
+                                break;
+                            case Bishop:
+                                tile.innerHTML = "&#9821;";
+                                break;
+                            case Queen:
+                                tile.innerHTML = "&#9819;";
+                                break;
+                            case King:
+                                tile.innerHTML = "&#9818;";
+                                break;
+                            default:
+                                tile.innerHTML = "?";
+                        }
+                    }
+                    
                 }
                 else{
                     tile.innerHTML = "";
@@ -102,400 +110,230 @@ class ChessGame{
         }
     }
     
-    onClick(id){
-        var piece = this.board[id[0]][id[1]];
-        var currentLocation = String(id[0]) + String(id[1]);
-        
-        if(this.currentSelected == null){ //if no piece is selected right now
-            
-            if(piece != null){ //if this tile contains a game piece
-                var moves = this.getValidMoves(id);
-                
-                for(var i = 0; i < 8; i++){
+    onClick(id){ //sends id in "ij" format
+        var i = parseInt(id[0]);
+        var j = parseInt(id[1]);
+        var piece = this.board.getPiece(i, j);
 
-                    for(var j = 0; j < 8; j++){
-
-                        var thisID = String(i) + String(j)
-                        var tile = document.getElementById(thisID);
-
-                        if(moves.includes(thisID)){
-                            tile.setAttribute("data-selected", "true");
-                        } 
-                        else{
-                            tile.setAttribute("data-selected", "false");
-                        }
+        if(this.currentSelected == null){ //if no piece is selected
+            if(piece != null){ //if this tile contains a piece...
+                if(piece.color == this.currentPlayer){  //...and it belongs to the current player
+                    piece.select(this.board);
+                    this.currentSelected = piece;
+                }
+            }
+        }
+        else{ //if a piece is selected perform a possible movement or deselection
+            var values = this.currentSelected.move(this.board, i, j); //attempt to make a move
+            if(values == false){ //deselect if move failed
+                if(piece == this.currentSelected){ //deselect if the same piece is clicked again
+                    this.currentSelected.deselect();
+                    this.currentSelected = null;
+                }
+                else if(piece != null){
+                    if(this.board.isFriend(i, j, this.currentPlayer)){ //but if another friendly piece is clicked, select that instead
+                        this.currentSelected.deselect();
+                        this.currentSelected = piece;
+                        this.currentSelected.select(this.board);
                     }
                 }
-                this.currentSelected = piece;
-                this.currentMoves = moves;
+                else{ //deselect if an empty tile is clicked
+                    this.currentSelected.deselect();
+                    this.currentSelected = null;
+                }
+            }
+            else{ //if a move has succeeded
+                this.currentSelected.deselect();
+                this.movePiece(values[0], values[1], values[2], values[3]);
+                this.currentSelected = null;
+                //GOOD PLACE TO IMPLEMENT UNDO
+                this.nextTurn();
             }
         }
-        else{
-            
-            if(piece == null){
-                if(this.currentMoves.includes(currentLocation)){
-                    this.move_piece(this.currentSelected, id[0], id[1]);
-                    this.deselectAll();
-                    this.draw();
-                }
-                else{
-                    this.deselectAll();   
-                }
-            }
-            else if(piece == this.currentSelected){ //deselect if selected again
-                this.deselectAll();
-            }
-            else if(piece.color == this.currentPlayer){ //if piece is an friendly piece, select that instead
-                this.deselectAll();
-                var moves = this.getValidMoves(id);
-                
-                for(var i = 0; i < 8; i++){
+    }
+    
+    movePiece(old_i, old_j, new_i, new_j){
+        var capturedEnemy = this.board.movePiece(old_i, old_j, new_i, new_j);
+        if(capturedEnemy != null){
+            //do something
+        }
+        this.draw();
+    }
+    
+    nextTurn(){ //sets the next turn
+        this.board.setValidMoves(true); //update list of valid moves
+        this.currentPlayer = !this.currentPlayer;
+        console.log(this.board.isCheckmated(this.currentPlayer));
+        console.log(this.board.isChecked(this.currentPlayer));
+    }
 
-                    for(var j = 0; j < 8; j++){
+}
 
-                        var thisID = String(i) + String(j)
-                        var tile = document.getElementById(thisID);
-
-                        if(moves.includes(thisID)){
-                            tile.setAttribute("data-selected", "true");
-                        } 
-                        else{
-                            tile.setAttribute("data-selected", "false");
-                        }
-                    }
-                }
-                this.currentSelected = piece;
-                this.currentMoves = moves;                
-            }
-            else if(piece.color != this.currentPlayer){ //if we're trying to attack an enemy
-                //PERFORM ATTACKING ACTION HERE
-            }
-            
-            else{ //otherwise deselect all
-                this.deselectAll();
-            }
+class Board{ //representing a game board containing pieces
+    constructor(init){
+        this.board = init; //an [i][j] structured array
+        this.whiteMoves = []; //list of all possible moves in format "[[i, j], [i, j]] for white
+        this.blackMoves = [];
+    }
+    
+    getPiece(i, j){
+        if(within_range(i, j)){
+            return this.board[i][j];
         }
+        return null;
     }
     
-    deselectAll(){ //remove all blue selection tiles
-        for(var i = 0; i < 8; i++){
-            for(var j = 0; j < 8; j++){
-                var thisID = String(i) + String(j)
-                var tile = document.getElementById(thisID);
-                tile.setAttribute("data-selected", "false");
-            }
-        }
-        this.currentSelected = null;
-        this.currentMoves = null;
-    }
-    
-    getValidMoves(id){ //get all possible squares the piece at i, j can move to
-        var i = id[0];
-        var j = id[1];
-        var piece = this.board[i][j];
-        
-        var validMoves = [];
-        if(piece != null && piece.color == this.currentPlayer){
-            var moves = piece.getValidMoves(this);
-            for(var i = 0; i < moves.length; i++){
-                var move = moves[i];
-                var curr = this.board[move[0]][move[1]];
-                if(curr == null){
-                    validMoves.push(move);
-                }
-                else if(curr.color != this.currentPlayer){
-                    validMoves.push(move);
-                }
-            }
-            return validMoves;
-        }
-        else{
-            return [];
-        }
-    }
-    
-    move_piece(piece, newI, newJ){
-        var oldI = piece.i;
-        var oldJ = piece.j;
-        piece.i = parseInt(newI);
-        piece.j = parseInt(newJ);
-        
-        this.board[oldI][oldJ] = null;
-        this.board[newI][newJ] = piece;
-    }
-    
-    checkForMate(){
-        
-    }
-    
-    hasPiece(i, j){
+    hasPiece(i, j){ //checks if board has a piece at i, j;
         return (this.board[i][j] != null);
     }
     
-    isEnemy(i, j){
+    isEnemy(i, j, player){ //checks if piece at i, j is not color
+        if(!within_range(i, j)){
+            return false;
+        }
         if(this.board[i][j] == null){
             return false;
         }
-        return (this.board[i][j].color != this.currentPlayer);
-    }
-
-}
-
-class Piece{
-    constructor(game, color, i, j){
-        this.game = game;
-        this.color = color;
-        this.alive = true;
-        this.i = i; 
-        this.j = j;
-        this.firstMove = true;
-        this.validMoves = []; //gets all valid moves on this term in "ij" format
+        return (this.board[i][j].color != player);
     }
     
-    getAllMoves(game){
-        return;
+    isFriend(i, j, player){ //checks if piece at i, j is color
+        if(!within_range(i, j)){
+            return false;
+        }
+        if(this.board[i][j] == null){
+            return false;
+        }
+        return (this.board[i][j].color == player);
     }
     
-    getValidMoves(game){
-        var all_moves = this.getAllMoves(game);
-        var validMoves = [];
-        for(var x = 0; x < all_moves.length; x++){
-            var move = all_moves[x];
-            var i = move[0];
-            var j = move[1];
-            if(within_range(i, j)){
-                var strMove = String(i) + String(j);
-                validMoves.push(strMove);
-            }
-        }
-        return validMoves;
+    setValidMoves(checkSensitive){
+        this.whiteMoves = this.getValidMoves(true, checkSensitive);
+        this.blackMoves = this.getValidMoves(false, checkSensitive);
     }
-}
+    
+    getValidMoves(player, checkSensitive){ //gets all possible moves for player
+        var moves = [];
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                var piece = this.board[i][j];
+                if(piece != null){
+                    if(piece.color == player){
+                        var validMoves = piece.getValidMoves(this, checkSensitive);
+                        var from = [i, j];
 
-class Pawn extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
-        this.firstMove = true;
+                        for(var x = 0; x < validMoves.length; x++){
+                            var to = validMoves[x];
+                            moves.push([[from], [to]]);
+                        }
+                    }
+                }
+            }
+        }
+        return moves;
     }
     
-    getValidMoves(game){
-        var all_moves = [];
-        if(this.color == "white"){
-            all_moves = [[this.i + 1, this.j]];
-            if(this.firstMove && !game.hasPiece(this.i + 1, this.j)){
-                all_moves.push([this.i + 2, this.j]);
-            }
-            if(game.isEnemy(this.i + 1, this.j - 1)){
-                all_moves.push([this.i + 1, this.j - 1]);
-            }
-            if(game.isEnemy(this.i + 1, this.j + 1)){
-                all_moves.push([this.i + 1, this.j + 1]);
-            }
+    movePiece(old_i, old_j, new_i, new_j){ //updates this.board. returns enemy if captured, otherwise returns false
+        var piece = this.board[old_i][old_j];
+        var enemy = this.board[new_i][new_j]
+        this.board[old_i][old_j] = null;
+        this.board[new_i][new_j] = piece;
+        this.setValidMoves();
+        if(this.isEnemy(new_i, new_j)){
+            return enemy;
         }
-        else{
-            all_moves = [[this.i - 1, this.j]];
-            if(this.firstMove && !game.hasPiece(this.i - 1, this.j)){
-                all_moves.push([this.i - 2, this.j]);
-            }
-            if(game.isEnemy(this.i - 1, this.j - 1)){
-                all_moves.push([this.i - 1, this.j - 1]);
-            }
-            if(game.isEnemy(this.i - 1, this.j + 1)){
-                all_moves.push([this.i - 1, this.j + 1]);
-            }
-        }
-        return all_moves;
-        
-        //IMPLEMENT PAWN ATTACKS
-    }
-}
-
-class Rook extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
-        this.validMoves = [];
+        return false;
     }
     
-    getValidMoves(game){
-        var all_moves = [];
-        for(var j = this.j - 1; j >= 0; j -= 1){
-            if(game.hasPiece(this.i, j)){
-                break;
+    getKing(player){ //return the [i, j] location of player's king
+        var king = null;
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                var piece = this.board[i][j];
+                if(piece != null){
+                    if(piece instanceof King && piece.color == player){
+                        king = piece;
+                        break;
+                    }
+                }          
             }
-            all_moves.push([this.i, j]);
-        }
-        for(var j = this.j + 1; j < 8; j++){
-            if(game.hasPiece(this.i, j)){
-                break;
-            }
-            console.log(this.i, j)
-            console.log(game.hasPiece(this.i, j))
-            all_moves.push([this.i, j]);
         }
         
-        for(var i = this.i - 1; i >= 0; i -= 1){
-            if(game.hasPiece(i, this.j)){
-                break;
-            }
-            all_moves.push([i, this.j]);
-        }
-        for(var i = this.i + 1; i < 8; i++){
-            if(game.hasPiece(i, this.j)){
-                break;
-            }            
-            all_moves.push([i, this.j]);
-        }
-        console.log(all_moves);
-        return all_moves;
-    }
-}
-
-class Knight extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+        return [king.i, king.j];
     }
     
-    getAllMoves(){
-        var all_moves = [[this.i - 2, this.j + 1], [this.i - 1, this.j + 2], [this.i + 1, this.j + 2], [this.i + 2, this.j + 1], [this.i + 2, this.j - 1], [this.i + 1, this.j - 2], [this.i - 1, this.j - 2], [this.i - 2, this.j - 1]];
-        return all_moves;
-    }
-}
-
-class Bishop extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
+    isChecked(player){ //returns whether or not player has been checked
+        var kingLocation = this.getKing(player);
+        var opponentMoves = this.getValidMoves(!player, false);
+        
+        for(var i = 0; i < opponentMoves.length; i++){
+            if(opponentMoves[i][1].toString() === kingLocation.toString()){
+                return true;
+            }
+        }
+        return false;
     }
     
-    getAllMoves(game){
-        var all_moves = [];
-        
-        for(var z = 1; z < 8; z++){ //down and right
-            if(!within_range(this.i + z, this.j + z)){
-                break;
-            }
-            else if(game.hasPiece(this.i + z, this.j + z)){
-                break;
-            }
-            all_moves.push([this.i + z, this.j + z]);
-        }
-        for(var z = 1; z < 8; z++){
-            if(!within_range(this.i - z, this.j + z)){
-                break;
-            }
-            else if(game.hasPiece(this.i - z, this.j + z)){
-                break;
-            }
-            all_moves.push([this.i - z, this.j + z]);
-        }
-        for(var z = 1; z < 8; z++){
-            if(!within_range(this.i + z, this.j - z)){
-                break;
-            }
-            else if(game.hasPiece(this.i + z, this.j - z)){
-                break;
-            }
-            all_moves.push([this.i + z, this.j - z]);
-        }
-        for(var z = 1; z < 8; z++){
-            if(!within_range(this.i - z, this.j - z)){
-                break;
-            }
-            else if(game.hasPiece(this.i - z, this.j - z)){
-                break;
-            }
-            all_moves.push([this.i - z, this.j - z]);
-        }
-        console.log(all_moves);
-        return all_moves;
-    }
-}
+    isCheckmated(board, player){ //check if this player has been checkmated
+        var opponent = !player;
+        var playerMoves = [];
+        var opponentMoves = [];
+        player ? playerMoves = this.whiteMoves : playerMoves = this.blackMoves;
+        player ? opponentMoves = this.blackMoves : opponentMoves = this.whiteMoves;
 
-class Queen extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
-    }
-    
-    getAllMoves(game){
-        var all_moves = [];
-        
-        for(var j = this.j - 1; j >= 0; j -= 1){
-            if(game.hasPiece(this.i, j)){
-                break;
+        for(var i = 0; i < playerMoves.length; i++){ //simulate through every possible move player can make
+            var curr = playerMoves[i];
+            var simulatedBoard = new Board(deepCopy(this.board));
+            var piece = simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
+            
+            var checked = false;
+            for(var j = 0; j < opponentMoves.length; j++){
+                var curr = opponentMoves[i];
+                var piece = simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
+                if(isChecked(simulatedBoard, player)){
+                    checked = true;
+                    break;
+                }
             }
-            all_moves.push([this.i, j]);
+            if(!checked){
+                return false;
+            }
         }
-        for(var j = this.j + 1; j < 8; j++){
-            if(game.hasPiece(this.i, j)){
-                break;
-            }
-            all_moves.push([this.i, j]);
-        }
-        
-        for(var i = this.i - 1; i >= 0; i -= 1){
-            if(game.hasPiece(i, this.j)){
-                break;
-            }
-            all_moves.push([i, this.j]);
-        }
-        for(var i = this.i + 1; i < 8; i++){
-            if(game.hasPiece(i, this.j)){
-                break;
-            }            
-            all_moves.push([i, this.j]);
-        }
-        
-        for(var z = 1; z < 8; z++){ //down and right
-            if(!within_range(this.i + z, this.j + z)){
-                break;
-            }
-            else if(game.hasPiece(this.i + z, this.j + z)){
-                break;
-            }
-            all_moves.push([this.i + z, this.j + z]);
-        }
-        for(var z = 1; z < 8; z++){
-            if(!within_range(this.i - z, this.j + z)){
-                break;
-            }
-            else if(game.hasPiece(this.i - z, this.j + z)){
-                break;
-            }
-            all_moves.push([this.i - z, this.j + z]);
-        }
-        for(var z = 1; z < 8; z++){
-            if(!within_range(this.i + z, this.j - z)){
-                break;
-            }
-            else if(game.hasPiece(this.i + z, this.j - z)){
-                break;
-            }
-            all_moves.push([this.i + z, this.j - z]);
-        }
-        for(var z = 1; z < 8; z++){
-            if(!within_range(this.i - z, this.j - z)){
-                break;
-            }
-            else if(game.hasPiece(this.i - z, this.j - z)){
-                break;
-            }
-            all_moves.push([this.i - z, this.j - z]);
-        }
-        
-        return all_moves;
-    }
-}
-
-class King extends Piece{
-    constructor(color, i, j){
-        super(color, i, j);
-    }
-    
-    getAllMoves(game){
-        var all_moves = [[this.i + 1, this.j], [this.i - 1, this.j], [this.i, this.j - 1], [this.i, this.j + 1]];
-        return all_moves;
+        return true;
     }
 }
                
 function within_range(i, j){
     return (0 <= i && i <= 7 && 0 <= j && j <= 7);
+}
+
+function fromString(str){ //returns in [i, j] format
+    return [str[0], str[1]];
+}
+
+function toString(lst){ //returns in "ij" format
+    return String(lst[0]) + String(lst[1]);
+}
+
+function contains(lst, value){ //see if list contains an [i, j] value
+    value = toString(value);
+    for(var i = 0; i < lst.length; i++){
+        var element = toString(lst[i]);
+        if(element == value){
+            return true;
+        }
+    }
+    return false;
+}
+
+function deepCopy(obj){ //creates deep copy of board
+    var board = [];
+    for(var i = 0; i < 8; i++){
+        var temp = []
+        for(var j = 0; j < 8; j++){
+            temp.push(obj[i][j])
+        }
+        board.push(temp);
+    }
+    return board;
 }
