@@ -52,7 +52,6 @@ class Piece{
     }
     
     getValidMoves(board, checkSensitive){ //returns valid move in [i, j] format, removing off--board choices
-        console.log(1);
         var allMoves = this.getAllMoves(board);
         var validMoves = [];
         for(var x = 0; x < allMoves.length; x++){
