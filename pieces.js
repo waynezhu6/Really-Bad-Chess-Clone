@@ -6,6 +6,7 @@ class Piece{
         this.j = j;
         this.firstMove = true;
         this.validMoves = []; //gets all valid moves on this term in "[i, j]" format
+        this.allMoves = []; //gets all possible moves
     }
     
     move(board, i, j){ //returns new [old_i, old_j, new_i, new_j] if moved, otherwise return false
@@ -19,8 +20,8 @@ class Piece{
                 var old_j = this.j;
                 this.i = i;
                 this.j = j;
-                this.getValidMoves(board);
                 this.firstMove = false;
+                this.allMoves = this.getAllMoves(board);
                 return [old_i, old_j, i, j];
             }
             return false;
@@ -29,7 +30,6 @@ class Piece{
     }
     
     select(board){
-        this.getValidMoves(board, true);
         for(var i = 0; i < this.validMoves.length; i++){
             var id = this.validMoves[i];
             var element = document.getElementById(toString(id));
@@ -52,6 +52,7 @@ class Piece{
     }
     
     getValidMoves(board, checkSensitive){ //returns valid move in [i, j] format, removing off--board choices
+        console.log(1);
         var allMoves = this.getAllMoves(board);
         var validMoves = [];
         for(var x = 0; x < allMoves.length; x++){

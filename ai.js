@@ -10,7 +10,7 @@ const values = {
 function evaluate(board, moves, player){ //returns the most optimal move for player
     
     var maxScore = null;
-    var maxMove = null;
+    var maxMove = [];
         
     for(var x = 0; x < moves.length; x++){
         var move = moves[x];
@@ -34,11 +34,14 @@ function evaluate(board, moves, player){ //returns the most optimal move for pla
                 }
             }
         }
-        if(score >= maxScore){
+        if(score >= maxScore || maxScore == null){
             maxScore = score;
-            maxMove = move;
+            maxMove.push(move);
         }
     }
-    return maxMove;
+    console.log(maxMove);
+    var rand = Math.floor(Math.random() * (maxMove.length));
+    console.log(rand);
+    return maxMove[rand];
     
 }
