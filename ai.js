@@ -8,15 +8,17 @@ const values = {
 }
 
 class Tree{
-    constructor(root, children, move){
+    constructor(root, children, move, player){ //root would be this move, by player
         this.root = root;
         this.children = children;
         this.move = move;
+        this.score = getScore(root.board);
+        this.player = player; //player who made this move
     }
     
     evaluate(player){ //returns [score, index] with most optimal minimax score
         if(this.children.length == 0){
-            return [getScore(this.root.board, player), -1];
+            return [getScore(this.root.board), -1];
         }
         else{
             if(player){ //if white, return highest
@@ -24,7 +26,7 @@ class Tree{
                 for(var i = 0; i < this.children.length; i++){
                     var child = this.children[i];
                     var result = child.evaluate(!player);
-                    if(max.length){
+                    if(max.length == 0){
                         max = [result[0], i];
                     }
                     else if(result[0] > max[0]){
@@ -38,13 +40,17 @@ class Tree{
                 for(var i = 0; i < this.children.length; i++){
                     var child = this.children[i];
                     var result = child.evaluate(!player);
+                    //console.log(child);
+                    //console.log(result)
                     if(min.length == 0){
                         min = [result[0], i];
                     }
                     else if(result[0] < min[0]){
                         min = [result[0], i];
                     }
+                    console.log(min);
                 }
+                console.log(min);
                 return min;
             }
         } 
@@ -52,9 +58,9 @@ class Tree{
 }
 
 function simulate(board, moves, player, depth){
-    var tree = createTree(board, moves, player, depth, null);
+    var tree = createTree(board, moves, !player, depth, null);
+    console.log(tree);
     var index = tree.evaluate(player)[1];
-    console.log(moves[index]);
     return moves[index];
 }
 
@@ -63,8 +69,13 @@ function createTree(board, moves, player, depth, initialMove){
         return null;
     }
     else{
-        var tree = new Tree(board, [], initialMove);
+        var tree = new Tree(board, [], initialMove, player);
         var children = getChildren(board, moves);
+        if(depth == 3){
+            console.log(moves);
+            console.log(board);
+            console.log(children);
+        }
         for(var i = 0; i < children.length; i++){
             var childMoves = children[i][1].getValidMoves(!player, true);
             var nextChild = createTree(children[i][1], childMoves, !player, depth - 1, children[i][0]);
@@ -127,14 +138,14 @@ function evaluate(board, moves, player){ //returns the most optimal move for pla
 
 }
 
-function getScore(board, player){
+function getScore(board){
     var score = 0;
     for(var i = 0; i < 8; i++){
         for(var j = 0; j < 8; j++){
             var piece = board[i][j];
             if(piece != null){
                 var type = piece.constructor.name;
-                piece.color == player ? score += values[type] : score -= values[type]; 
+                piece.color ? score += values[type] : score -= values[type]; 
             }
         }
     }
