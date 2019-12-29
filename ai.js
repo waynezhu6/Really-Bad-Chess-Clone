@@ -11,10 +11,38 @@ var paths = 0;
 var moveChecks = 0;
 
 class Tree{
-    constructor(root, children, move){ //root would be this move, by player
+    constructor(root, children, move, moves, player){ //root would be this move, by player
         this.root = root;
         this.children = children;
+        this.move = move;
+        this.moves = moves;
+        this.score = null;
+        this.player = player
     }
+    
+//    initialize(depth){
+//        if(depth == 0){
+//            return null;
+//        }
+//        else{
+//            var children = getChildren(this.root, this.moves);
+//            for(var i = 0; i < children.length; i++){
+//                var child = children[i][1].copy();
+//                paths += 1;
+//                var childMoves = child.getValidMoves(!this.player, false);
+//                var nextChild = new Tree(child, [], children[i][0], childMoves, !this.player);
+//                if(nextChild != null){
+//                    this.children.push(nextChild);
+//                }    
+//            }
+//            
+//            this.root = null;
+//            this.moves = null;
+//            for(var i = 0; i < this.children.length; i++){
+//                this.children[i].initialize(depth - 1);
+//            }
+//        }
+//    }
     
     evaluate(player){ //returns [score, index] with most optimal minimax score
         if(this.children.length == 0){
@@ -27,13 +55,20 @@ class Tree{
                     var child = this.children[i];
                     var result = child.evaluate(!player);
                     if(max.length == 0){
-                        max = [result[0], i];
+                        max.push([result[0], i]);
                     }
-                    else if(result[0] > max[0]){
-                        max = [result[0], i];
+                    else if(result[0] > max[0][0]){
+                        max = [[result[0], i]];
+                    }
+                    else if(result[0] == max[0][0]){
+                        max.push([result[0], i]);
                     }
                 }
-                return max;
+                if(max.length == 1){
+                    return max[0];
+                }
+                var index = Math.floor(Math.random() * (max.length));
+                return max[index];
             }
             else{ //if black, return lowest
                 var min = [];
@@ -41,13 +76,20 @@ class Tree{
                     var child = this.children[i];
                     var result = child.evaluate(!player);
                     if(min.length == 0){
-                        min = [result[0], i];
+                        min.push([result[0], i]);
                     }
                     else if(result[0] < min[0]){
-                        min = [result[0], i];
+                        min = [[result[0], i]];
+                    }
+                    else if(result[0] == min[0][0]){
+                        min.push([result[0], i]);
                     }
                 }
-                return min;
+                if(min.length == 1){
+                    return min[0];
+                }
+                var index = Math.floor(Math.random() * (min.length));
+                return min[index];
             }
         } 
     }
@@ -57,7 +99,10 @@ function simulate(board, moves, player, depth){
     paths = 0;
     moveChecks = 0;
     var tree = createTree(board.copy(), moves, !player, depth, null);
+    //var tree = new Tree(board, [], null, moves, player);
+    //tree.initialize(depth);
     console.log(paths, moveChecks);
+    console.log(tree);
     var index = tree.evaluate(player)[1];
     return moves[index];
 }

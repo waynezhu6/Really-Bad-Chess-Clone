@@ -165,7 +165,7 @@ class ChessGame{
         this.currentPlayer ? moves = this.board.whiteMoves : moves = this.board.blackMoves;
                 
         //minimax simulation
-        var result = simulate(this.board, moves, this.currentPlayer, 3);
+        var result = simulate(this.board, moves, this.currentPlayer, 4);
         var piece = this.board.getPiece(result[0][0], result[0][1]);
         piece.move(this.board, result[1][0], result[1][1]);
         this.movePiece(result[0][0], result[0][1], result[1][0], result[1][1]);
