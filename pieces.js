@@ -1,5 +1,5 @@
 class Piece{
-    constructor(game, color, i, j){
+    constructor(color, i, j){
         this.color = color; //true if white
         this.alive = true; //if this piece is uncaptured
         this.i = i; 
@@ -58,7 +58,7 @@ class Piece{
             var move = allMoves[x];
             if(within_range(move[0], move[1])){
                 if(checkSensitive){
-                    var simulatedBoard = new Board(deepCopy(board.board));
+                    var simulatedBoard = board.copy();
                     simulatedBoard.movePiece(this.i, this.j, move[0], move[1]);
                     if(!simulatedBoard.isChecked(this.color)){
                         validMoves.push(move);
@@ -76,8 +76,8 @@ class Piece{
 }
 
 class Pawn extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(board){ //returns moves in [i, j] format
@@ -116,8 +116,8 @@ class Pawn extends Piece{
 }
 
 class Rook extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(board){
@@ -164,8 +164,8 @@ class Rook extends Piece{
 }
 
 class Knight extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(board){
@@ -184,8 +184,8 @@ class Knight extends Piece{
 }
 
 class Bishop extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(board){
@@ -244,8 +244,8 @@ class Bishop extends Piece{
 }
 
 class Queen extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(board){
@@ -343,8 +343,8 @@ class Queen extends Piece{
 }
 
 class King extends Piece{
-    constructor(game, color, i, j){
-        super(game, color, i, j);
+    constructor(color, i, j){
+        super(color, i, j);
     }
     
     getAllMoves(board){

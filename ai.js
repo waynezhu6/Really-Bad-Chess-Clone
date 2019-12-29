@@ -7,13 +7,12 @@ const values = {
     "King": 900
 }
 
+var paths = 0;
+
 class Tree{
-    constructor(root, children, move, player){ //root would be this move, by player
+    constructor(root, children, move){ //root would be this move, by player
         this.root = root;
         this.children = children;
-        this.move = move;
-        this.score = getScore(root.board);
-        this.player = player; //player who made this move
     }
     
     evaluate(player){ //returns [score, index] with most optimal minimax score
@@ -40,17 +39,13 @@ class Tree{
                 for(var i = 0; i < this.children.length; i++){
                     var child = this.children[i];
                     var result = child.evaluate(!player);
-                    //console.log(child);
-                    //console.log(result)
                     if(min.length == 0){
                         min = [result[0], i];
                     }
                     else if(result[0] < min[0]){
                         min = [result[0], i];
                     }
-                    console.log(min);
                 }
-                console.log(min);
                 return min;
             }
         } 
@@ -58,27 +53,25 @@ class Tree{
 }
 
 function simulate(board, moves, player, depth){
-    var tree = createTree(board, moves, !player, depth, null);
-    console.log(tree);
+    paths = 0;
+    var tree = createTree(board.copy(), moves, !player, depth, null);
+    console.log(paths);
     var index = tree.evaluate(player)[1];
     return moves[index];
 }
 
 function createTree(board, moves, player, depth, initialMove){
+    paths += 1
     if(depth == 0){
         return null;
     }
     else{
-        var tree = new Tree(board, [], initialMove, player);
+        var tree = new Tree(board, []);
         var children = getChildren(board, moves);
-        if(depth == 3){
-            console.log(moves);
-            console.log(board);
-            console.log(children);
-        }
         for(var i = 0; i < children.length; i++){
-            var childMoves = children[i][1].getValidMoves(!player, true);
-            var nextChild = createTree(children[i][1], childMoves, !player, depth - 1, children[i][0]);
+            var child = children[i][1].copy();
+            var childMoves = child.getValidMoves(player, true);
+            var nextChild = createTree(child, childMoves, player, depth - 1, children[i][0]);
             if(nextChild != null){
                 tree.children.push(nextChild);
             }    
@@ -87,10 +80,10 @@ function createTree(board, moves, player, depth, initialMove){
     }
 }
     
-function getChildren(board, moves){ //returns array in [move, board] pairs
+function getChildren(board, moves){ //returns array of boards
     var children = [];
     for(var i = 0; i < moves.length; i++){
-        var sim = new Board(deepCopy(board.board));
+        var sim = board.copy();
         var simulatedBoard = sim.board;
         var move = moves[i];
         var old_i = move[0][0];
@@ -100,42 +93,13 @@ function getChildren(board, moves){ //returns array in [move, board] pairs
         var piece = simulatedBoard[old_i][old_j];
         simulatedBoard[old_i][old_j] = null;
         simulatedBoard[new_i][new_j] = piece;
+        //console.log(board, new_i, new_j);
+        piece.i = new_i;
+        piece.j = new_j;
         children.push([move, sim]);
     }
+
     return children;
-}
-
-function evaluate(board, moves, player){ //returns the most optimal move for player
-    
-    var maxScore = null;
-    var maxMove = [];
-
-    for(var x = 0; x < moves.length; x++){
-        var move = moves[x];
-        var old_i = move[0][0];
-        var old_j = move[0][1];
-        var new_i = move[1][0];
-        var new_j = move[1][1];
-
-        var simulatedBoard = deepCopy(board);
-        var piece = simulatedBoard[old_i][old_j];
-        simulatedBoard[old_i][old_j] = null;
-        simulatedBoard[new_i][new_j] = piece;
-
-        var score = getScore(simulatedBoard);
-        if(score > maxScore || maxScore == null){
-            maxScore = score;
-            maxMove = [];
-            maxMove.push(move);
-        }
-        if(score == maxScore){
-            maxScore = score;
-            maxMove.push(move);
-        }
-    }
-    var rand = Math.floor(Math.random() * (maxMove.length));
-    return maxMove[rand];
-
 }
 
 function getScore(board){

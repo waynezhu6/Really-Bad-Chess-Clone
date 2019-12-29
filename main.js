@@ -5,57 +5,38 @@ class ChessGame{
         this.currentPlayer = true; //true if white
         this.currentSelected = null; //the currently selected piece
         
-        //this.initializePieces(this.board);
         this.board.setValidMoves(true, false);
         this.board.setValidMoves(false, false);
     }
     
     generateBoard(){ //places all game pieces onto the board
         
-        var board = []
-        for(var i = 0; i < 8; i++){
-            var row = [];
-            for(var j = 0; j < 8; j++){
-                row.push(null);
-            }
-            board.push(row);
-        }
+        var init = [];
         
-        for(var j = 0; j < 2; j++){
-            board[1][j] = new Pawn(this, true, 1, j);
-            //board[6][j] = new Pawn(this, false, 6, j);
+        for(var j = 0; j < 8; j++){
+            init.push(new Pawn(true, 1, j));
+            init.push(new Pawn(false, 6, j));
         }
+                
+        init.push(new Rook(true, 0, 0));
+        init.push(new Knight(true, 0, 1));
+        init.push(new Bishop(true, 0, 2));
+        init.push(new Queen(true, 0, 3));
+        init.push(new King(true, 0, 4));
+        init.push(new Bishop(true, 0, 5));
+        init.push(new Knight(true, 0, 6));
+        init.push(new Rook(true, 0, 7));
         
-        board[0][0] = new Rook(this, true, 0, 0);
-//        board[0][1] = new Knight(this, true, 0, 1);
-//        board[0][2] = new Bishop(this, true, 0, 2);
-//        board[0][3] = new Queen(this, true, 0, 3);
-        board[0][4] = new King(this, true, 0, 4);
-//        board[0][5] = new Bishop(this, true, 0, 5);
-//        board[0][6] = new Knight(this, true, 0, 6);
-//        board[0][7] = new Rook(this, true, 0, 7);
-//        
-        board[7][0] = new Rook(this, false, 7, 0);
-//        board[7][1] = new Knight(this, false, 7, 1);
-//        board[7][2] = new Bishop(this, false, 7, 2);
-//        board[7][3] = new Queen(this, false, 7, 3);
-        board[7][4] = new King(this, false, 7, 4);
-//        board[7][5] = new Bishop(this, false, 7, 5);
-//        board[7][6] = new Knight(this, false, 7, 6);
-//        board[7][7] = new Rook(this, false, 7, 7);
+        init.push(new Rook(false, 7, 0));
+        init.push(new Knight(false, 7, 1));
+        init.push(new Bishop(false, 7, 2));
+        init.push(new Queen(false, 7, 3));
+        init.push(new King(false, 7, 4));
+        init.push(new Bishop(false, 7, 5));
+        init.push(new Knight(false, 7, 6));
+        init.push(new Rook(false, 7, 7));
         
-        return board;
-    }
-    
-    initializePieces(board){
-        for(var i = 0; i < 8; i++){
-            for(var j = 0; j < 8; j++){
-                var piece = board.getPiece(i, j);
-                if(piece != null){
-                    piece.getAllMoves(board);
-                }
-            }
-        }
+        return init;
     }
     
     draw(){
@@ -174,43 +155,45 @@ class ChessGame{
     }
     
     nextTurn(){ //sets the next turn
-        console.log(this.board);
-        console.log(!this.currentPlayer);
         this.board.setValidMoves(!this.currentPlayer, true); //update list of valid moves
         this.currentPlayer = !this.currentPlayer;
-        console.log(this.board.blackMoves);
         
-        console.log(this.board.isCheckmated(this.currentPlayer));
-        console.log(this.board.isChecked(this.currentPlayer));
+        console.log("checkmate", this.board.isCheckmated(this.currentPlayer));
+        console.log("check", this.board.isChecked(this.currentPlayer));
             
         var moves = [];
         this.currentPlayer ? moves = this.board.whiteMoves : moves = this.board.blackMoves;
-        
-        console.log(moves);
-        //minimax sim
-        var result = simulate(new Board(deepCopy(this.board.board)), moves, this.currentPlayer, 3);
+                
+        //minimax simulation
+        var result = simulate(this.board, moves, this.currentPlayer, 3);
         var piece = this.board.getPiece(result[0][0], result[0][1]);
         piece.move(this.board, result[1][0], result[1][1]);
         this.movePiece(result[0][0], result[0][1], result[1][0], result[1][1]);
         
-        //stupid sim
-//        var result = evaluate(this.board.board, moves, false);
-//        var piece = this.board.getPiece(result[0][0], result[0][1]);
-//        piece.move(this.board, result[1][0], result[1][1]);
-//        this.movePiece(result[0][0], result[0][1], result[1][0], result[1][1]);
-        
         this.board.setValidMoves(!this.currentPlayer, true); //update list of valid moves
-        this.currentPlayer = !this.currentPlayer;
-        
+        this.currentPlayer = !this.currentPlayer;        
     }
 
 }
 
 class Board{ //representing a game board containing pieces
     constructor(init){
-        this.board = init; //an [i][j] structured array
+        this.board = []
         this.whiteMoves = []; //list of all possible moves in format "[[i, j], [i, j]] for white
         this.blackMoves = [];
+        
+        for(var i = 0; i < 8; i++){
+            var row = [];
+            for(var j = 0; j < 8; j++){
+                row.push(null);
+            }
+            this.board.push(row);
+        }
+        
+        for(var i = 0; i < init.length; i++){
+            var piece = init[i];
+            this.board[piece.i][piece.j] = piece;
+        }
     }
     
     getPiece(i, j){
@@ -221,7 +204,12 @@ class Board{ //representing a game board containing pieces
     }
     
     hasPiece(i, j){ //checks if board has a piece at i, j;
-        return (this.board[i][j] != null);
+        try{
+            return (this.board[i][j] != null);
+        }
+        catch{
+            //console.log(this, i, j);    
+        }
     }
     
     isEnemy(i, j, player){ //checks if piece at i, j is not color
@@ -291,15 +279,12 @@ class Board{ //representing a game board containing pieces
             for(var j = 0; j < 8; j++){
                 var piece = this.board[i][j];
                 if(piece != null){
-                    if(piece instanceof King && piece.color == player){
+                    if(piece.constructor.name == "King" && piece.color == player){
                         king = piece;
                         break;
                     }
                 }          
             }
-        }
-        if(king == null){
-            console.log(this);
         }
         return [king.i, king.j];
     }
@@ -317,31 +302,6 @@ class Board{ //representing a game board containing pieces
     }
     
     isCheckmated(player){ //check if this player has been checkmated
-//        var opponent = !player;
-//        var playerMoves = [];
-//        var opponentMoves = [];
-//        player ? playerMoves = this.whiteMoves : playerMoves = this.blackMoves;
-//        player ? opponentMoves = this.blackMoves : opponentMoves = this.whiteMoves;
-//        
-//        for(var i = 0; i < playerMoves.length; i++){ //simulate through every possible move player can make
-//            var curr = playerMoves[i];
-//            var simulatedBoard = new Board(deepCopy(this.board));
-//            simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
-//            
-//            var checked = false;
-//            for(var j = 0; j < opponentMoves.length; j++){
-//                var curr = opponentMoves[i];
-//                simulatedBoard.movePiece(curr[0][0], curr[0][1], curr[1][0], curr[1][1]);
-//                if(simulatedBoard.isChecked(player)){
-//                    checked = true;
-//                    break;
-//                }
-//            }
-//            if(!checked){
-//                return false;
-//            }
-//        }
-//        return true;
         
         var moves = [];
         player ? moves = this.whiteMoves : moves = this.blackMoves;
@@ -351,14 +311,46 @@ class Board{ //representing a game board containing pieces
         return false;
         
     }
+    
+    copy(){ //returns a deep clone of this board
+        var init = [];
+        
+        for(var i = 0; i < 8; i++){
+            for(var j = 0; j < 8; j++){
+                var piece = this.board[i][j];
+                if(piece != null){
+                    switch(piece.constructor.name){
+                            case "Pawn":
+                                init.push(new Pawn(piece.color, piece.i, piece.j));
+                                break;
+                            case "Rook":
+                                init.push(new Rook(piece.color, piece.i, piece.j));
+                                break;
+                            case "Knight":
+                                init.push(new Knight(piece.color, piece.i, piece.j));
+                                break;
+                            case "Bishop":
+                                init.push(new Bishop(piece.color, piece.i, piece.j));
+                                break;
+                            case "Queen":
+                                init.push(new Queen(piece.color, piece.i, piece.j));
+                                break;
+                            case "King":
+                                init.push(new King(piece.color, piece.i, piece.j));
+                                break;
+                            default:
+                                tile.innerHTML = "?";
+                        }
+                }
+            }
+        }
+        var board = new Board(init);
+        return board;
+    }
 }
                
 function within_range(i, j){
     return (0 <= i && i <= 7 && 0 <= j && j <= 7);
-}
-
-function fromString(str){ //returns in [i, j] format
-    return [str[0], str[1]];
 }
 
 function toString(lst){ //returns in "ij" format
@@ -374,16 +366,4 @@ function contains(lst, value){ //see if list contains an [i, j] value
         }
     }
     return false;
-}
-
-function deepCopy(obj){ //creates deep copy of board
-    var board = [];
-    for(var i = 0; i < 8; i++){
-        var temp = []
-        for(var j = 0; j < 8; j++){
-            temp.push(obj[i][j])
-        }
-        board.push(temp);
-    }
-    return board;
 }
