@@ -8,6 +8,7 @@ const values = {
 }
 
 var paths = 0;
+var moveChecks = 0;
 
 class Tree{
     constructor(root, children, move){ //root would be this move, by player
@@ -54,14 +55,14 @@ class Tree{
 
 function simulate(board, moves, player, depth){
     paths = 0;
+    moveChecks = 0;
     var tree = createTree(board.copy(), moves, !player, depth, null);
-    console.log(paths);
+    console.log(paths, moveChecks);
     var index = tree.evaluate(player)[1];
     return moves[index];
 }
 
 function createTree(board, moves, player, depth, initialMove){
-    paths += 1
     if(depth == 0){
         return null;
     }
@@ -70,7 +71,8 @@ function createTree(board, moves, player, depth, initialMove){
         var children = getChildren(board, moves);
         for(var i = 0; i < children.length; i++){
             var child = children[i][1].copy();
-            var childMoves = child.getValidMoves(player, true);
+            paths += 1;
+            var childMoves = child.getValidMoves(player, false);
             var nextChild = createTree(child, childMoves, player, depth - 1, children[i][0]);
             if(nextChild != null){
                 tree.children.push(nextChild);

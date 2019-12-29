@@ -52,6 +52,7 @@ class Piece{
     }
     
     getValidMoves(board, checkSensitive){ //returns valid move in [i, j] format, removing off--board choices
+        moveChecks += 1;
         var allMoves = this.getAllMoves(board);
         var validMoves = [];
         for(var x = 0; x < allMoves.length; x++){
@@ -348,7 +349,7 @@ class King extends Piece{
     }
     
     getAllMoves(board){
-        var lst = [[this.i + 1, this.j], [this.i - 1, this.j], [this.i, this.j - 1], [this.i, this.j + 1]];
+        var lst = [[this.i + 1, this.j], [this.i - 1, this.j], [this.i, this.j - 1], [this.i, this.j + 1], [this.i + 1, this.j + 1], [this.i + 1, this.j - 1], [this.i - 1, this.j + 1], [this.i - 1, this.j - 1]];
         
         var all_moves = []
         for(var x = 0; x < lst.length; x++){
