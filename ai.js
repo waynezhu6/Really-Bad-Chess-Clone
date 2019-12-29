@@ -11,13 +11,9 @@ var paths = 0;
 var moveChecks = 0;
 
 class Tree{
-    constructor(root, children, move, moves, player){ //root would be this move, by player
+    constructor(root, children){ //root would be this move, by player
         this.root = root;
         this.children = children;
-        this.move = move;
-        this.moves = moves;
-        this.score = null;
-        this.player = player
     }
     
 //    initialize(depth){
@@ -117,7 +113,7 @@ function createTree(board, moves, player, depth, initialMove){
         for(var i = 0; i < children.length; i++){
             var child = children[i][1].copy();
             paths += 1;
-            var childMoves = child.getValidMoves(player, false);
+            var childMoves = child.getValidMoves(player, false, false);
             var nextChild = createTree(child, childMoves, player, depth - 1, children[i][0]);
             if(nextChild != null){
                 tree.children.push(nextChild);

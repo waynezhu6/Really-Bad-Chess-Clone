@@ -51,7 +51,7 @@ class Piece{
         }
     }
     
-    getValidMoves(board, checkSensitive){ //returns valid move in [i, j] format, removing off--board choices
+    getValidMoves(board, checkSensitive, dataPersist){ //returns valid move in [i, j] format, removing off--board choices
         moveChecks += 1;
         var allMoves = this.getAllMoves(board);
         var validMoves = [];
@@ -70,7 +70,9 @@ class Piece{
                 }
             }
         }
-        this.validMoves = validMoves;
+        if(dataPersist){
+            this.validMoves = validMoves;
+        }
         return validMoves;
     }
 

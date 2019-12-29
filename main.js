@@ -234,21 +234,21 @@ class Board{ //representing a game board containing pieces
     
     setValidMoves(color, checkSensitive){
         if(color){
-            this.whiteMoves = this.getValidMoves(true, checkSensitive);
+            this.whiteMoves = this.getValidMoves(true, checkSensitive, true);
         }
         else{
-            this.blackMoves = this.getValidMoves(false, checkSensitive);
+            this.blackMoves = this.getValidMoves(false, checkSensitive, true);
         }
     }
     
-    getValidMoves(player, checkSensitive){ //gets all possible moves for player
+    getValidMoves(player, checkSensitive, dataPersist){ //gets all possible moves for player
         var moves = [];
         for(var i = 0; i < 8; i++){
             for(var j = 0; j < 8; j++){
                 var piece = this.board[i][j];
                 if(piece != null){
                     if(piece.color == player){
-                        var validMoves = piece.getValidMoves(this, checkSensitive);
+                        var validMoves = piece.getValidMoves(this, checkSensitive, dataPersist);
                         var from = [i, j];
 
                         for(var x = 0; x < validMoves.length; x++){
